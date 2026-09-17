@@ -85,6 +85,14 @@ fun FeedScreen() {
             Text("One-tap log 💩")
         }
 
+        Button(onClick = {
+            // Share weekly recap image
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            RecapShare.shareWeeklyRecap(ctx)
+        }, modifier = Modifier.padding(top = 8.dp)) {
+            Text("Share weekly recap")
+        }
+
         LazyColumn(modifier = Modifier.padding(top = 12.dp)) {
             items(items = logs) { item ->
                 Card(modifier = Modifier.padding(6.dp)) {

@@ -15,15 +15,31 @@ object PairingManager {
     }
 
     fun createPairing(inviterUid: String, onResult: (success: Boolean, inviteCode: String?, message: String?) -> Unit) {
-        val invite = generateInviteCode()
-        val docRef = db.collection("pairings").document()
-        val payload = mapOf(
-            "inviteCode" to invite,
-            "memberIds" to listOf(inviterUid),
-            "createdAt" to Timestamp.now()
-        )
-        docRef.set(payload)
-            .addOnSuccessListener { onResult(true, invite, null) }
+        // Enforce free tier: only 1 active pairing per non-premium user
+        db.collection("users").document(inviterUid).get()
+            .addOnSuccessListener { uSnap ->
+                val isPremium = uSnap.exists() && (uSnap.data?.get("premium") as? Boolean == true)
+                // count existing pairings
+                db.collection("pairings").whereArrayContains("memberIds", inviterUid).get()
+                    .addOnSuccessListener { pSnap ->
+                        val count = pSnap.size()
+                        if (!isPremium && count >= 1) {
+                            onResult(false, null, "Free tier allows only 1 active pairing. Upgrade to premium for multiple pairings.")
+                            return@addOnSuccessListener
+                        }
+                        val invite = generateInviteCode()
+                        val docRef = db.collection("pairings").document()
+                        val payload = mapOf(
+                            "inviteCode" to invite,
+                            "memberIds" to listOf(inviterUid),
+                            "createdAt" to Timestamp.now()
+                        )
+                        docRef.set(payload)
+                            .addOnSuccessListener { onResult(true, invite, null) }
+                            .addOnFailureListener { e -> onResult(false, null, e.localizedMessage) }
+                    }
+                    .addOnFailureListener { e -> onResult(false, null, e.localizedMessage) }
+            }
             .addOnFailureListener { e -> onResult(false, null, e.localizedMessage) }
     }
 
