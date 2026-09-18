@@ -6,4 +6,5 @@
     <string name="no_pairing">No pairing found — create or join one first.</string>
     <string name="one_tap_log">One-tap log 💩</string>
     <string name="share_recap">Share weekly recap</string>
+    <string name="widget_description">One-tap poop log shortcut for your home screen</string>
 </resources>
