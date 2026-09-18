@@ -8,8 +8,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Timestamp
 import com.mmushtaq04.coupoop.AuthManager
@@ -23,6 +27,8 @@ fun FeedScreen() {
     val logs = remember { mutableStateListOf<Map<String, Any>>() }
     var listenerRegistration by remember { mutableStateOf<Any?>(null) }
     val status = remember { mutableStateOf<String?>(null) }
+    val celebration = remember { mutableStateOf(false) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(user) {
         if (user == null) return@LaunchedEffect
@@ -87,7 +93,7 @@ fun FeedScreen() {
 
         Button(onClick = {
             // Share weekly recap image
-            val ctx = androidx.compose.ui.platform.LocalContext.current
+            val ctx = LocalContext.current
             RecapShare.shareWeeklyRecap(ctx)
         }, modifier = Modifier.padding(top = 8.dp)) {
             Text("Share weekly recap")

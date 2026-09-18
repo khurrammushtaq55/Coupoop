@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,13 +38,13 @@ fun PairingScreen() {
             PairingManager.createPairing(user.uid) { success, invite, message ->
                 if (success) {
                     currentInvite.value = invite
-                    status.value = "Invite code: $invite"
+                    status.value = "Invite code: $invite — share it with your partner! 🔗"
                 } else {
                     status.value = message ?: "Failed to create pairing"
                 }
             }
         }) {
-            Text("Create pairing / Invite partner")
+            Text("Invite your partner (one-tap)")
         }
 
         OutlinedTextField(

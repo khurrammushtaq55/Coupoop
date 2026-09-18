@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import androidx.core.graphics.createBitmap
 
 /**
  * Simple local recap card generator that returns a Bitmap with basic text.
@@ -13,7 +14,7 @@ import android.graphics.Paint
 fun generateWeeklyRecapBitmap(context: Context, title: String = "Weekly Recap"): Bitmap {
     val width = 1080
     val height = 1080
-    val bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val bm = createBitmap(width, height)
     val canvas = Canvas(bm)
     canvas.drawColor(Color.WHITE)
 
