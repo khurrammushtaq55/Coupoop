@@ -1,6 +1,8 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.4.20"
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -31,40 +33,44 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
     buildFeatures {
         compose = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
-    }
+    // No composeOptions.kotlinCompilerExtensionVersion needed: the
+    // org.jetbrains.kotlin.plugin.compose Gradle plugin (applied above)
+    // picks the matching Compose compiler version automatically from
+    // the Kotlin version — setting it manually here would conflict.
 }
 
 dependencies {
-    implementation(libs.androidx_appcompat)
-    implementation(libs.androidx_core_ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.ktx)
 
-    // Compose
-    implementation(libs.activity_compose)
-    implementation(libs.compose_ui)
-    implementation(libs.material3_lib)
-
-    // Compose BOM
-    implementation(platform(libs.compose_bom_lib))
+    // Compose BOM — pulls in matching versions for everything below it
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
 
     // Firebase BOM and KTX libraries
-    implementation(platform(libs.firebase_bom_lib))
-    implementation(libs.firebase_auth_ktx)
-    implementation(libs.firebase_firestore_ktx)
-    implementation(libs.firebase_messaging_lib)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.messaging)
 
     // Optional Google Sign-In for account recovery
-    implementation(libs.play_services_auth_lib)
+    implementation(libs.play.services.auth)
 
     // Jetpack Glance for App Widget
-    implementation(libs.glance_appwidget_lib)
+    implementation(libs.glance.appwidget)
 
-    testImplementation(libs.junit_lib)
-    androidTestImplementation(libs.androidx_junit_lib)
-    androidTestImplementation(libs.espresso_core_lib)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }
