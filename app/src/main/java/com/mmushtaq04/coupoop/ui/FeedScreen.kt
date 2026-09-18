@@ -1,6 +1,7 @@
 package com.mmushtaq04.coupoop.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +30,9 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
     val logs = remember { mutableStateListOf<Map<String, Any>>() }
     val status = remember { mutableStateOf<String?>(null) }
     val celebration = remember { mutableStateOf(false) }
+    val showSettings = remember { mutableStateOf(false) }
+    val selectedBristol = remember { mutableStateOf<Int?>(null) }
+    val selectedMood = remember { mutableStateOf<String?>(null) }
     val ctx = LocalContext.current
 
     DisposableEffect(user, refreshTrigger) {
@@ -97,14 +101,53 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
         return
     }
 
+    if (showSettings.value) {
+        SettingsScreen(
+            pairingId = pairingIdState.value,
+            onBack = { showSettings.value = false },
+            onSignOut = onSignOut,
+            onLeftPairing = {
+                showSettings.value = false
+                refreshTrigger++
+            },
+            onAccountDeleted = onSignOut
+        )
+        return
+    }
+
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)) {
-        Button(onClick = onSignOut) {
-            Text("Sign out")
+        Button(onClick = { showSettings.value = true }) {
+            Text("⚙ Settings")
         }
 
         status.value?.let { Text(it, modifier = Modifier.padding(top = 8.dp)) }
+
+        Text("Bristol type (optional)", modifier = Modifier.padding(top = 12.dp))
+        Row(modifier = Modifier.padding(top = 4.dp)) {
+            for (i in 1..7) {
+                Button(
+                    onClick = { selectedBristol.value = if (selectedBristol.value == i) null else i },
+                    modifier = Modifier.padding(end = 4.dp)
+                ) {
+                    Text(if (selectedBristol.value == i) "✓$i" else "$i")
+                }
+            }
+        }
+
+        Text("Mood (optional)", modifier = Modifier.padding(top = 12.dp))
+        Row(modifier = Modifier.padding(top = 4.dp)) {
+            val moods = listOf("😊" to "good", "😐" to "okay", "😣" to "rough")
+            moods.forEach { (emoji, key) ->
+                Button(
+                    onClick = { selectedMood.value = if (selectedMood.value == key) null else key },
+                    modifier = Modifier.padding(end = 4.dp)
+                ) {
+                    Text(if (selectedMood.value == key) "✓$emoji" else emoji)
+                }
+            }
+        }
 
         Button(onClick = {
             val pid = pairingIdState.value
@@ -112,12 +155,15 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
                 status.value = "No pairing available"
                 return@Button
             }
-            // Quick one-tap log: minimal fields
-            LoggingManager.addLog(pid, user.uid, null, null, null, user.displayName) { success, message ->
+            LoggingManager.addLog(pid, user.uid, selectedBristol.value, selectedMood.value, null, user.displayName) { success, message ->
                 status.value = if (success) "Logged!" else (message ?: "Log failed")
+                if (success) {
+                    selectedBristol.value = null
+                    selectedMood.value = null
+                }
             }
         }, modifier = Modifier.padding(top = 12.dp)) {
-            Text("One-tap log 💩")
+            Text("Log 💩")
         }
 
         Button(onClick = {

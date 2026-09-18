@@ -78,4 +78,11 @@ object PairingManager {
                 onResult(null)
             }
     }
+
+    fun leavePairing(pairingId: String, userUid: String, onResult: (success: Boolean, message: String?) -> Unit) {
+        db.collection("pairings").document(pairingId)
+            .update("memberIds", FieldValue.arrayRemove(userUid))
+            .addOnSuccessListener { onResult(true, null) }
+            .addOnFailureListener { e -> onResult(false, e.localizedMessage) }
+    }
 }
