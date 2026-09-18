@@ -21,16 +21,20 @@ import com.mmushtaq04.coupoop.PairingManager
 fun FeedScreen() {
     val user = AuthManager.currentUser()
     val pairingIdState = remember { mutableStateOf<String?>(null) }
+    val pairingChecked = remember { mutableStateOf(false) }
+    var refreshTrigger by remember { mutableStateOf(0) }
     val logs = remember { mutableStateListOf<Map<String, Any>>() }
     var listenerRegistration by remember { mutableStateOf<Any?>(null) }
     val status = remember { mutableStateOf<String?>(null) }
     val celebration = remember { mutableStateOf(false) }
-    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val ctx = LocalContext.current
 
-    LaunchedEffect(user) {
+    LaunchedEffect(user, refreshTrigger) {
         if (user == null) return@LaunchedEffect
+        pairingChecked.value = false
         PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
             pairingIdState.value = pairingId
+            pairingChecked.value = true
             if (pairingId == null) {
                 status.value = "No pairing found — create or join one first."
             } else {
@@ -69,6 +73,19 @@ fun FeedScreen() {
         }
     }
 
+    if (user != null && !pairingChecked.value) {
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Text("Checking your pairing...")
+        }
+        return
+    }
+
+    if (user != null && pairingChecked.value && pairingIdState.value == null) {
+        // No pairing yet — send them to create/join instead of a dead-end status line.
+        PairingScreen(onPaired = { refreshTrigger++ })
+        return
+    }
+
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)) {
@@ -90,7 +107,6 @@ fun FeedScreen() {
 
         Button(onClick = {
             // Share weekly recap image
-            val ctx = LocalContext.current
             RecapShare.shareWeeklyRecap(ctx)
         }, modifier = Modifier.padding(top = 8.dp)) {
             Text("Share weekly recap")

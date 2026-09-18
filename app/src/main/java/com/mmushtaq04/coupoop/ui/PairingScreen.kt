@@ -15,7 +15,7 @@ import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.PairingManager
 
 @Composable
-fun PairingScreen() {
+fun PairingScreen(onPaired: () -> Unit = {}) {
     val user = AuthManager.currentUser()
     val status = remember { mutableStateOf<String?>(null) }
     val joinCode = remember { mutableStateOf("") }
@@ -56,6 +56,7 @@ fun PairingScreen() {
             PairingManager.acceptPairingByCode(joinCode.value, user.uid) { success, message ->
                 if (success) {
                     status.value = "Joined pairing!"
+                    onPaired()
                 } else {
                     status.value = message ?: "Failed to join"
                 }
@@ -64,7 +65,12 @@ fun PairingScreen() {
             Text("Join by code")
         }
 
-        currentInvite.value?.let { Text("Your invite code: $it", modifier = Modifier.padding(top = 12.dp)) }
+        currentInvite.value?.let {
+            Text("Your invite code: $it", modifier = Modifier.padding(top = 12.dp))
+            Button(onClick = onPaired, modifier = Modifier.padding(top = 8.dp)) {
+                Text("Continue to Sync")
+            }
+        }
         status.value?.let { Text(it, modifier = Modifier.padding(top = 8.dp)) }
     }
 }
