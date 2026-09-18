@@ -17,15 +17,25 @@ service cloud.firestore {
       // Reads allowed to members
       allow read: if request.auth != null && request.auth.uid in resource.data.memberIds;
 
-      // Allow client-side update only to add the requesting user to memberIds
-      // via arrayUnion (invite acceptance). This blocks a member from rewriting
-      // any other field, removing other members, or reordering the list —
-      // the only permitted diff is their own uid appended at the end.
-      allow update: if request.auth != null
-                    && !(request.auth.uid in resource.data.memberIds)
-                    && request.auth.uid in request.resource.data.memberIds
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
-                    && request.resource.data.memberIds == resource.data.memberIds.concat([request.auth.uid]);
+      // Allow client-side update only for two narrow member-list changes:
+      // (a) joining — the requester adds themself via arrayUnion, nothing else
+      //     changes; or (b) leaving/account deletion — the requester removes
+      //     only themself, nothing else changes. No other field or member can
+      // ever be touched by a client update.
+      allow update: if request.auth != null && (
+        ( // Join
+          !(request.auth.uid in resource.data.memberIds)
+          && request.auth.uid in request.resource.data.memberIds
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+          && request.resource.data.memberIds == resource.data.memberIds.concat([request.auth.uid])
+        ) || ( // Leave
+          request.auth.uid in resource.data.memberIds
+          && !(request.auth.uid in request.resource.data.memberIds)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+          && request.resource.data.memberIds.size() == resource.data.memberIds.size() - 1
+          && resource.data.memberIds.hasAll(request.resource.data.memberIds)
+        )
+      );
       allow delete: if false;
 
       // Logs subcollection

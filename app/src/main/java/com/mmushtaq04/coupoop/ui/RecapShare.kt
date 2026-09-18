@@ -8,58 +8,41 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 object RecapShare {
 
-    private val dayFormat: SimpleDateFormat by lazy {
-        SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = TimeZone.getDefault() }
-    }
-
     /**
-     * Pulls the pairing's recent logs from Firestore, computes the real weekly
-     * count and current day-streak, then generates and shares the recap image.
-     * (Previously this drew hardcoded numbers regardless of actual activity.)
+     * Pulls the pairing's recent logs from Firestore for the weekly count, and
+     * the real "sync streak" (partners logging within the Cloud Function's sync
+     * window — see functions/index.js onLogCreate) from streaks/sync, then
+     * generates and shares the recap image.
      */
     fun shareWeeklyRecap(context: Context, pairingId: String) {
         val db = FirebaseFirestore.getInstance()
-        val thirtyDaysAgo = Timestamp(Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(30)))
+        val pairingRef = db.collection("pairings").document(pairingId)
+        val sevenDaysAgo = Timestamp(Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)))
 
-        db.collection("pairings").document(pairingId)
-            .collection("logs")
-            .whereGreaterThanOrEqualTo("timestamp", thirtyDaysAgo)
+        pairingRef.collection("logs")
+            .whereGreaterThanOrEqualTo("timestamp", sevenDaysAgo)
             .get()
-            .addOnSuccessListener { snap ->
-                val dates = snap.documents.mapNotNull { (it.get("timestamp") as? Timestamp)?.toDate() }
-                val weekAgoMillis = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
-                val weeklyCount = dates.count { it.time >= weekAgoMillis }
-                val streakDays = computeCurrentStreakDays(dates.map { dayFormat.format(it) }.toSet())
+            .addOnSuccessListener { logsSnap ->
+                val weeklyCount = logsSnap.size()
 
-                generateAndShare(context, weeklyCount, streakDays)
+                pairingRef.collection("streaks").document("sync").get()
+                    .addOnSuccessListener { streakSnap ->
+                        val streakDays = (streakSnap.getLong("currentStreak") ?: 0L).toInt()
+                        generateAndShare(context, weeklyCount, streakDays)
+                    }
+                    .addOnFailureListener {
+                        generateAndShare(context, weeklyCount, streakDays = 0)
+                    }
             }
             .addOnFailureListener {
                 // Don't fall back to fake numbers — show zero rather than a stale/invented stat.
                 generateAndShare(context, weeklyCount = 0, streakDays = 0)
             }
-    }
-
-    /** Consecutive days (ending today, or yesterday if nothing's logged yet today) with at least one log. */
-    private fun computeCurrentStreakDays(loggedDayKeys: Set<String>): Int {
-        val cal = Calendar.getInstance()
-        if (!loggedDayKeys.contains(dayFormat.format(cal.time))) {
-            cal.add(Calendar.DAY_OF_YEAR, -1)
-        }
-        var streak = 0
-        while (loggedDayKeys.contains(dayFormat.format(cal.time))) {
-            streak++
-            cal.add(Calendar.DAY_OF_YEAR, -1)
-        }
-        return streak
     }
 
     private fun generateAndShare(context: Context, weeklyCount: Int, streakDays: Int) {
