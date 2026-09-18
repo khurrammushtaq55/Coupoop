@@ -10,18 +10,23 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.background
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
+import androidx.glance.material3.GlanceTheme
 import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
 import com.mmushtaq04.coupoop.MainActivity
 
 class QuickLogWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            Content(context)
+            GlanceTheme {
+                Content(context)
+            }
         }
     }
 
@@ -36,11 +41,18 @@ class QuickLogWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
+                .background(GlanceTheme.colors.primaryContainer, cornerRadius = 16.dp)
                 .padding(12.dp)
                 .clickable(actionStartActivity(quickLogIntent))
         ) {
-            Text(text = "One-tap log 💩")
-            Text(text = "Tap to log")
+            Text(
+                text = "One-tap log 💩",
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer)
+            )
+            Text(
+                text = "Tap to log",
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer)
+            )
         }
     }
 }

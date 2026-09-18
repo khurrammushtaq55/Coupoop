@@ -33,6 +33,7 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glanceAppwidget" }
+glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glanceAppwidget" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }

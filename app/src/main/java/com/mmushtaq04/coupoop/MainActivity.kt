@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -70,7 +70,7 @@ fun CoupoopApp() {
         onDispose { AuthManager.removeAuthStateListener(listener) }
     }
 
-    MaterialTheme {
+    CoupoopTheme {
         Surface {
             if (currentUser == null) {
                 LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
