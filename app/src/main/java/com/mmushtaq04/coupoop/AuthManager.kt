@@ -24,4 +24,14 @@ object AuthManager {
     fun signOut() {
         auth.signOut()
     }
+
+    // Lets UI observe sign-in/sign-out reactively instead of reading
+    // currentUser() once at composition time.
+    fun addAuthStateListener(listener: FirebaseAuth.AuthStateListener) {
+        auth.addAuthStateListener(listener)
+    }
+
+    fun removeAuthStateListener(listener: FirebaseAuth.AuthStateListener) {
+        auth.removeAuthStateListener(listener)
+    }
 }

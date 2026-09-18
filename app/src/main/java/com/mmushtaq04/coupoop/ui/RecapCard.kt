@@ -11,7 +11,12 @@ import androidx.core.graphics.createBitmap
  * Simple local recap card generator that returns a Bitmap with basic text.
  * For MVP this draws simple stats; replace with Compose-based rendering as needed.
  */
-fun generateWeeklyRecapBitmap(context: Context, title: String = "Weekly Recap"): Bitmap {
+fun generateWeeklyRecapBitmap(
+    context: Context,
+    weeklyCount: Int,
+    streakDays: Int,
+    title: String = "Weekly Recap"
+): Bitmap {
     val width = 1080
     val height = 1080
     val bm = createBitmap(width, height)
@@ -24,9 +29,12 @@ fun generateWeeklyRecapBitmap(context: Context, title: String = "Weekly Recap"):
         isAntiAlias = true
     }
 
+    val timesLabel = if (weeklyCount == 1) "time" else "times"
+    val streakLabel = if (streakDays == 1) "day" else "days"
+
     canvas.drawText(title, 60f, 120f, paint)
-    canvas.drawText("You went 14 times this week 🔥", 60f, 220f, paint)
-    canvas.drawText("Sync streak: 12 days", 60f, 320f, paint)
+    canvas.drawText("You went $weeklyCount $timesLabel this week 🔥", 60f, 220f, paint)
+    canvas.drawText("Sync streak: $streakDays $streakLabel", 60f, 320f, paint)
 
     return bm
 }

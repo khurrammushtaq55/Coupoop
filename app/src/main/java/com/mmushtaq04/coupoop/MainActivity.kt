@@ -7,6 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.google.firebase.auth.FirebaseAuth
 import com.mmushtaq04.coupoop.ui.LoginScreen
 import com.mmushtaq04.coupoop.ui.FeedScreen
 
@@ -38,7 +44,7 @@ class MainActivity : ComponentActivity() {
         if (user != null) {
             PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
                 if (pairingId != null) {
-                    LoggingManager.addLog(pairingId, user.uid, null, null, "Widget quick-log") { success, _ ->
+                    LoggingManager.addLog(pairingId, user.uid, null, null, "Widget quick-log", user.displayName) { success, _ ->
                         // no-op; UI will reflect logs when app opens
                     }
                 }
@@ -52,14 +58,25 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun CoupoopApp() {
+    // Observe auth state reactively — reading AuthManager.currentUser() once here
+    // would never notice a sign-in or sign-out happening afterwards.
+    var currentUser by remember { mutableStateOf(AuthManager.currentUser()) }
+
+    DisposableEffect(Unit) {
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            currentUser = auth.currentUser
+        }
+        AuthManager.addAuthStateListener(listener)
+        onDispose { AuthManager.removeAuthStateListener(listener) }
+    }
+
     MaterialTheme {
         Surface {
-            val user = AuthManager.currentUser()
-            if (user == null) {
-                LoginScreen(onSignedIn = { /* recomposition will show pairing screen */ })
+            if (currentUser == null) {
+                LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
             } else {
                 // Show feed; if no pairing exists the FeedScreen will prompt to create/join
-                FeedScreen()
+                FeedScreen(onSignOut = { AuthManager.signOut() })
             }
         }
     }

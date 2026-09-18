@@ -7,9 +7,18 @@ import com.google.firebase.firestore.ListenerRegistration
 object LoggingManager {
     private val db = FirebaseFirestore.getInstance()
 
-    fun addLog(pairingId: String, userId: String, bristol: Int? = null, mood: String? = null, note: String? = null, onResult: (Boolean, String?) -> Unit) {
+    fun addLog(
+        pairingId: String,
+        userId: String,
+        bristol: Int? = null,
+        mood: String? = null,
+        note: String? = null,
+        displayName: String? = null,
+        onResult: (Boolean, String?) -> Unit
+    ) {
         val payload = hashMapOf<String, Any?>(
             "userId" to userId,
+            "displayName" to displayName,
             "timestamp" to Timestamp.now(),
             "bristolType" to bristol,
             "mood" to mood,
