@@ -2,23 +2,37 @@ package com.mmushtaq04.coupoop.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.FcmManager
+import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
+import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
 
 @Composable
 fun LoginScreen(onSignedIn: () -> Unit) {
@@ -31,18 +45,32 @@ fun LoginScreen(onSignedIn: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("💩", style = MaterialTheme.typography.headlineMedium)
+        // 1. 💩 emoji
+        Text("💩", fontSize = 56.sp)
+        
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Sync", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(4.dp))
+        
+        // 2. "Coupoop" wordmark
         Text(
-            "The playful way to keep track together",
+            text = "Coupoop",
+            style = MaterialTheme.typography.headlineLarge,
+            color = LightCoralDark
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        // 3. Tagline
+        Text(
+            text = "The playful way to keep track together",
             style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 220.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
+        // 4. Primary Button
         Button(
             onClick = {
                 status.value = "Signing in..."
@@ -61,14 +89,28 @@ fun LoginScreen(onSignedIn: () -> Unit) {
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge // Using round shape
         ) {
-            Text("Quick anonymous sign-in — start syncing 💨")
+            Text(
+                "Quick anonymous sign-in — start syncing 💨",
+                style = MaterialTheme.typography.labelLarge
+            )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // 5. Divider
+        Text(
+            text = "— or —",
+            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Google Sign-In Integration
+        // 6. Google Sign-In Integration
         val context = androidx.compose.ui.platform.LocalContext.current
         val webClientId = "713853475701-h93q4arti6aiaiukfg9vr6om6ev757d7.apps.googleusercontent.com"
         
@@ -107,17 +149,46 @@ fun LoginScreen(onSignedIn: () -> Unit) {
             }
         }
 
-        androidx.compose.material3.OutlinedButton(
+        OutlinedButton(
             onClick = {
                 status.value = "Opening Google Sign-In..."
                 launcher.launch(googleSignInClient.signInIntent)
             },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.White,
+                contentColor = Color(0xFF3C4043)
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFDADCE0))
         ) {
-            Text("Sign in with Google (Secure Backup) 🔐")
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Placeholder for Google "G" logo
+                Text("G ", fontWeight = FontWeight.Bold, color = Color.Blue) 
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Sign in with Google",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        status.value?.let { Text(it, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall) }
+        status.value?.let { 
+            Text(
+                it, 
+                textAlign = TextAlign.Center, 
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            ) 
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    CoupoopTheme {
+        LoginScreen(onSignedIn = {})
     }
 }
