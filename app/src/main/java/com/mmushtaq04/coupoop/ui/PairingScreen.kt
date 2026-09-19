@@ -390,15 +390,15 @@ fun JoinPanel(
 @Preview(showBackground = true)
 @Composable
 fun PairingScreenPreview() {
-    com.mmushtaq04.coupoop.ui.theme.CoupoopTheme {
-        PairingScreen()
+    CoupoopTheme {
+        PairingScreen(onPaired = {}, onSettingsClick = {})
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun InviteTicketPreview() {
-    com.mmushtaq04.coupoop.ui.theme.CoupoopTheme {
+    CoupoopTheme {
         InviteTicket(code = "ABC123")
     }
 }
