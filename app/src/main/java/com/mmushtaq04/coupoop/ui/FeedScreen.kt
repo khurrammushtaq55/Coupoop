@@ -32,6 +32,7 @@ import com.google.firebase.firestore.Query
 import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.LoggingManager
 import com.mmushtaq04.coupoop.PairingManager
+import com.mmushtaq04.coupoop.RatingManager
 import java.util.Date
 
 @Composable
@@ -92,9 +93,11 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
         }
     }
 
-    // Auto-clear celebration after a short time
+    // Auto-clear celebration after a short time, and use the happy moment to
+    // (rarely) prompt for an app rating via Play's native review flow.
     LaunchedEffect(celebration.value) {
         if (celebration.value) {
+            RatingManager.onCelebration(ctx)
             kotlinx.coroutines.delay(3000)
             celebration.value = false
         }
@@ -269,6 +272,35 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
                             }
                             val note = item["note"] as? String
                             note?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+
+                            val logId = item["id"] as? String
+                            val reactions = (item["reactions"] as? Map<*, *>)
+                                ?.mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? String)?.let { value -> key to value } } }
+                                ?.toMap() ?: emptyMap()
+                            val myReaction = user?.let { reactions[it.uid] }
+
+                            if (reactions.isNotEmpty()) {
+                                val summary = reactions.values.groupingBy { it }.eachCount()
+                                    .entries.joinToString(" ") { (emoji, count) -> if (count > 1) "$emoji×$count" else emoji }
+                                Text(summary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+                            }
+
+                            Row(modifier = Modifier.padding(top = 4.dp)) {
+                                listOf("❤️", "😂", "👍").forEach { emoji ->
+                                    val isMine = myReaction == emoji
+                                    Button(
+                                        onClick = {
+                                            val pid = pairingIdState.value
+                                            if (pid != null && logId != null && user != null) {
+                                                LoggingManager.setReaction(pid, logId, user.uid, if (isMine) null else emoji) { _, _ -> }
+                                            }
+                                        },
+                                        modifier = Modifier.padding(end = 4.dp)
+                                    ) {
+                                        Text(if (isMine) "✓$emoji" else emoji)
+                                    }
+                                }
+                            }
                         }
                     }
                 }

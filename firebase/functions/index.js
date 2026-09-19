@@ -36,7 +36,9 @@ exports.onLogCreate = functions.firestore
       }
     };
 
-    // Collect tokens from users/{userId}/fcmTokens (array) - best-effort
+    // Collect tokens from users/{userId}/fcmTokens (array) - best-effort,
+    // skipping any member who has muted this pairing (mutedPairings array on
+    // their own users/{uid} doc — see NotificationPrefsManager on the client)
     const tokens = [];
     for (const member of memberIds) {
       if (member === userId) continue;
@@ -44,6 +46,8 @@ exports.onLogCreate = functions.firestore
         const u = await db.collection('users').doc(member).get();
         const d = u.data();
         if (!d) continue;
+        const mutedPairings = d.mutedPairings || [];
+        if (mutedPairings.includes(pairingId)) continue;
         const t = d.fcmTokens || [];
         for (const tok of t) tokens.push(tok);
       } catch (e) {
