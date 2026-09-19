@@ -69,6 +69,10 @@ dependencies {
 
     // Jetpack Glance for App Widget
     implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
+
+    // Play In-App Review (rating prompt)
+    implementation(libs.play.review.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

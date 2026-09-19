@@ -44,8 +44,13 @@ service cloud.firestore {
                       && request.auth.uid in get(/databases/$(database)/documents/pairings/$(pairingId)).data.memberIds;
         allow read: if request.auth != null
                     && request.auth.uid in get(/databases/$(database)/documents/pairings/$(pairingId)).data.memberIds;
-        // Disallow client-side deletes/updates to logs for safety; handle via server/cloud functions if needed
-        allow update, delete: if false;
+        // Members may only ever touch the reactions map on a log (emoji
+        // reactions) — every other field is immutable once created, and
+        // deletes are still disallowed entirely.
+        allow update: if request.auth != null
+                      && request.auth.uid in get(/databases/$(database)/documents/pairings/$(pairingId)).data.memberIds
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']);
+        allow delete: if false;
       }
 
       // Celebrations subcollection — written only by Cloud Functions (Admin SDK,

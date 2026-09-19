@@ -1,9 +1,12 @@
 package com.mmushtaq04.coupoop.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,12 +26,19 @@ fun PairingScreen(onPaired: () -> Unit = {}) {
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp)) {
+        .padding(24.dp)) {
 
         if (user == null) {
             Text("Please sign in first")
             return@Column
         }
+
+        Text("Pair up", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            "Invite your partner or join with their code to start syncing",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
+        )
 
         Button(onClick = {
             status.value = "Creating pairing..."
@@ -44,11 +54,14 @@ fun PairingScreen(onPaired: () -> Unit = {}) {
             Text("Invite your partner (one-tap)")
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+        Text("— or —", style = MaterialTheme.typography.bodyMedium)
+
         OutlinedTextField(
             value = joinCode.value,
             onValueChange = { joinCode.value = it.trim().uppercase() },
             label = { Text("Enter invite code") },
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = 12.dp)
         )
 
         Button(onClick = {
@@ -66,11 +79,11 @@ fun PairingScreen(onPaired: () -> Unit = {}) {
         }
 
         currentInvite.value?.let {
-            Text("Your invite code: $it", modifier = Modifier.padding(top = 12.dp))
+            Text("Your invite code: $it", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 20.dp))
             Button(onClick = onPaired, modifier = Modifier.padding(top = 8.dp)) {
                 Text("Continue to Sync")
             }
         }
-        status.value?.let { Text(it, modifier = Modifier.padding(top = 8.dp)) }
+        status.value?.let { Text(it, modifier = Modifier.padding(top = 12.dp)) }
     }
 }

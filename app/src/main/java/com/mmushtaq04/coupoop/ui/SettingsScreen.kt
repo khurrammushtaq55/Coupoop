@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mmushtaq04.coupoop.AccountManager
 import com.mmushtaq04.coupoop.AuthManager
+import com.mmushtaq04.coupoop.NotificationPrefsManager
 import com.mmushtaq04.coupoop.PairingManager
 
 @Composable
@@ -29,6 +32,16 @@ fun SettingsScreen(
     var status by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var working by remember { mutableStateOf(false) }
+    var muted by remember { mutableStateOf(false) }
+
+    LaunchedEffect(pairingId) {
+        val user = AuthManager.currentUser()
+        if (user != null && pairingId != null) {
+            NotificationPrefsManager.isPairingMuted(user.uid, pairingId) { isMuted ->
+                muted = isMuted
+            }
+        }
+    }
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -37,13 +50,30 @@ fun SettingsScreen(
             Text("← Back")
         }
 
-        Text("Settings", modifier = Modifier.padding(top = 16.dp))
+        Text("Settings", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 16.dp))
 
         Button(onClick = onSignOut, modifier = Modifier.padding(top = 16.dp)) {
             Text("Sign out")
         }
 
         if (pairingId != null) {
+            Button(
+                onClick = {
+                    val user = AuthManager.currentUser() ?: return@Button
+                    val newValue = !muted
+                    NotificationPrefsManager.setPairingMuted(user.uid, pairingId, newValue) { success, message ->
+                        if (success) {
+                            muted = newValue
+                        } else {
+                            status = message ?: "Failed to update notification setting"
+                        }
+                    }
+                },
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
+                Text(if (muted) "Unmute notifications" else "Mute notifications")
+            }
+
             Button(
                 onClick = {
                     val user = AuthManager.currentUser() ?: return@Button

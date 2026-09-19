@@ -10,6 +10,7 @@ composeBom = "2026.08.00"
 firebaseBom = "32.2.0"
 playServicesAuth = "20.5.0"
 glanceAppwidget = "1.2.0"
+playReview = "2.0.2"
 
 junit = "4.13.2"
 androidxJunit = "1.1.5"
@@ -33,6 +34,8 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glanceAppwidget" }
+glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glanceAppwidget" }
+play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "playReview" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
