@@ -7,7 +7,7 @@ package com.mmushtaq04.coupoop
 object PurchaseManager {
     // For MVP, premium flag is stored in users/{uid}.premium (boolean). This helper reads/writes that.
     fun isUserPremium(uid: String, onResult: (Boolean) -> Unit) {
-        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance("coupoop")
         db.collection("users").document(uid).get()
             .addOnSuccessListener { snap ->
                 val isPrem = snap.exists() && (snap.data?.get("premium") as? Boolean == true)

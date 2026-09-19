@@ -6,7 +6,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
 object LoggingManager {
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance("coupoop")
 
     fun addLog(
         pairingId: String,

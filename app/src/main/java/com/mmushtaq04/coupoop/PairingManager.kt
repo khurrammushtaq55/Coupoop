@@ -5,7 +5,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 object PairingManager {
-    private val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
+    private val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance("coupoop") }
 
     private fun generateInviteCode(length: Int = 6): String {
         val chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"

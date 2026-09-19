@@ -5,7 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 
 object FcmManager {
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance("coupoop")
 
     fun registerTokenForCurrentUser(onResult: (Boolean, String?) -> Unit = { _, _ -> }) {
         val user = AuthManager.currentUser() ?: run {
