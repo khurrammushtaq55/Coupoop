@@ -37,10 +37,16 @@ import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
 import java.util.Date
 
 @Composable
-fun FeedScreen(onSignOut: () -> Unit = {}) {
+fun FeedScreen(
+    onSignOut: () -> Unit = {},
+    forcedUserId: String? = null,
+    forcedPairingId: String? = null
+) {
     val user = AuthManager.currentUser()
-    val pairingIdState = remember { mutableStateOf<String?>(null) }
-    val pairingChecked = remember { mutableStateOf(false) }
+    val userId = forcedUserId ?: user?.uid
+
+    val pairingIdState = remember { mutableStateOf(forcedPairingId) }
+    val pairingChecked = remember { mutableStateOf(forcedPairingId != null) }
     var refreshTrigger by remember { mutableStateOf(0) }
     val logs = remember { mutableStateListOf<Map<String, Any>>() }
     val status = remember { mutableStateOf<String?>(null) }
@@ -53,13 +59,19 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
     
     val ctx = LocalContext.current
 
-    DisposableEffect(user, refreshTrigger) {
+    DisposableEffect(userId, refreshTrigger, forcedPairingId) {
         var logsRegistration: ListenerRegistration? = null
         var celebrationsRegistration: ListenerRegistration? = null
 
-        if (user != null) {
+        if (forcedPairingId != null) {
+            // Bypass mode: use the forced pairing ID immediately
+            logsRegistration = LoggingManager.listenForLogs(forcedPairingId) { items ->
+                logs.clear()
+                logs.addAll(items)
+            }
+        } else if (userId != null) {
             pairingChecked.value = false
-            PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
+            PairingManager.getFirstPairingForUser(userId) { pairingId ->
                 pairingIdState.value = pairingId
                 pairingChecked.value = true
                 if (pairingId != null) {
@@ -93,14 +105,14 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
         }
     }
 
-    if (user != null && !pairingChecked.value) {
+    if (userId != null && !pairingChecked.value) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = LightCoral)
         }
         return
     }
 
-    if (user != null && pairingChecked.value && pairingIdState.value == null) {
+    if (userId != null && pairingChecked.value && pairingIdState.value == null) {
         PairingScreen(
             onPaired = { refreshTrigger++ },
             onSettingsClick = { showSettings.value = true }
@@ -156,6 +168,7 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
                 Button(
                     onClick = {
                         val pid = pairingIdState.value ?: return@Button
+                        val uid = userId ?: return@Button
                         LoggingManager.addLog(
                             pairingId = pid,
                             userId = user!!.uid,
@@ -216,7 +229,7 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
                 }
             } else {
                 items(items = logs) { log ->
-                    LogCard(log = log, currentUser = user, pairingId = pairingIdState.value)
+                    LogCard(log = log, currentUserId = userId, pairingId = pairingIdState.value)
                 }
             }
             
@@ -234,15 +247,16 @@ fun Header(onSettingsClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Coupoop", style = MaterialTheme.typography.headlineMedium, color = LightCoralDark)
+        Text("coupoop", style = MaterialTheme.typography.headlineMedium, color = LightCoralDark)
         Surface(
             onClick = onSettingsClick,
             shape = RoundedCornerShape(12.dp),
             color = LightChipBg,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
             modifier = Modifier.size(38.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text("⚙", fontSize = 16.sp)
+                Text("⚙", fontSize = 18.sp, color = LightCoralDark)
             }
         }
     }
@@ -368,7 +382,7 @@ fun CelebrationBanner(visible: Boolean) {
 }
 
 @Composable
-fun LogCard(log: Map<String, Any>, currentUser: com.google.firebase.auth.FirebaseUser?, pairingId: String?) {
+fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
     Surface(
         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
         shape = RoundedCornerShape(18.dp),
@@ -412,11 +426,11 @@ fun LogCard(log: Map<String, Any>, currentUser: com.google.firebase.auth.Firebas
             
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("❤️", "😂", "👍").forEach { emoji ->
-                    val isMyReaction = currentUser?.let { reactions[it.uid] == emoji } ?: false
+                    val isMyReaction = currentUserId?.let { reactions[it] == emoji } ?: false
                     Surface(
                         onClick = {
-                            if (pairingId != null && logId != null && currentUser != null) {
-                                LoggingManager.setReaction(pairingId, logId, currentUser.uid, if (isMyReaction) null else emoji) { _, _ -> }
+                            if (pairingId != null && logId != null && currentUserId != null) {
+                                LoggingManager.setReaction(pairingId, logId, currentUserId, if (isMyReaction) null else emoji) { _, _ -> }
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
@@ -475,7 +489,7 @@ fun LogCardPreview() {
                 "mood" to "good",
                 "reactions" to mapOf("uid1" to "❤️", "uid2" to "😂")
             ),
-            currentUser = null,
+            currentUserId = "uid1",
             pairingId = "pair123"
         )
     }

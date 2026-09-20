@@ -50,9 +50,9 @@ fun LoginScreen(onSignedIn: () -> Unit) {
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        // 2. "Coupoop" wordmark
+        // 2. "coupoop" wordmark
         Text(
-            text = "Coupoop",
+            text = "coupoop",
             style = MaterialTheme.typography.headlineLarge,
             color = LightCoralDark
         )

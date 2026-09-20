@@ -45,7 +45,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
     val currentInvite = remember { mutableStateOf<String?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Decorative blobs — spec calls for a 36dp blur at 0.35 opacity.
+        // 1. Decorative blobs — spec calls for a 36dp blur at 0.35 opacity.
         // Modifier.blur() needs API 31+ (RenderEffect); below that it's a
         // documented no-op rather than a crash, so this degrades gracefully
         // to a flat, softer-edged circle at the same opacity on older devices.
@@ -64,21 +64,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
             .blur(36.dp)
             .background(LightTeal, CircleShape))
 
-        // Settings Button
-        Surface(
-            onClick = onSettingsClick,
-            shape = RoundedCornerShape(12.dp),
-            color = LightChipBg,
-            modifier = Modifier
-                .padding(20.dp)
-                .size(38.dp)
-                .align(Alignment.TopEnd)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("⚙", fontSize = 16.sp)
-            }
-        }
-
+        // 2. Main Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -92,7 +78,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // 2. Hero: 💩💕💩
+            // Hero: 💩💕💩
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("💩", fontSize = 40.sp)
                 Text("💕", fontSize = 16.sp, modifier = Modifier.padding(horizontal = 4.dp))
@@ -101,7 +87,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Title
+            // Title
             Text(
                 text = "Find your poop buddy",
                 style = MaterialTheme.typography.titleLarge,
@@ -109,7 +95,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
                 textAlign = TextAlign.Center
             )
 
-            // 4. Subtitle
+            // Subtitle
             Text(
                 text = "Invite your partner or join with their code",
                 style = MaterialTheme.typography.bodyMedium,
@@ -119,7 +105,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 5. Segmented Control
+            // Segmented Control
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,6 +175,22 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
                 ) 
             }
         }
+
+        // 3. Settings Button (Drawn last = on top of everything)
+        Surface(
+            onClick = onSettingsClick,
+            shape = RoundedCornerShape(12.dp),
+            color = LightChipBg,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+            modifier = Modifier
+                .padding(20.dp)
+                .size(38.dp)
+                .align(Alignment.TopEnd)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text("⚙", fontSize = 18.sp, color = LightCoralDark)
+            }
+        }
     }
 }
 
@@ -250,7 +252,7 @@ fun InvitePanel(
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = LightTeal)
             ) {
-                Text("Continue to Coupoop", style = MaterialTheme.typography.labelLarge)
+                Text("Continue to coupoop", style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -271,7 +273,7 @@ fun InviteTicket(code: String) {
                     color = LightCoral,
                     style = Stroke(
                         width = 1.5.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                     ),
                     cornerRadius = CornerRadius(18.dp.toPx())
                 )
@@ -309,7 +311,7 @@ fun InviteTicket(code: String) {
                     onClick = { 
                         val sendIntent: Intent = Intent().apply {
                             action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, "Join me on Coupoop! Use my code: $code")
+                            putExtra(Intent.EXTRA_TEXT, "Join me on coupoop! Use my code: $code")
                             type = "text/plain"
                         }
                         val shareIntent = Intent.createChooser(sendIntent, null)
@@ -396,7 +398,7 @@ fun JoinPanel(
 @Preview(showBackground = true)
 @Composable
 fun PairingScreenPreview() {
-    CoupoopTheme {
+    com.mmushtaq04.coupoop.ui.theme.CoupoopTheme {
         PairingScreen(onPaired = {}, onSettingsClick = {})
     }
 }
@@ -404,7 +406,7 @@ fun PairingScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 fun InviteTicketPreview() {
-    CoupoopTheme {
+    com.mmushtaq04.coupoop.ui.theme.CoupoopTheme {
         InviteTicket(code = "ABC123")
     }
 }

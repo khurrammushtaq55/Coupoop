@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sync</string>
+    <string name="app_name">coupoop</string>
     <string name="quick_sign_in">Quick sign-in — start syncing 💨</string>
     <string name="create_pairing">Create pairing / Invite partner</string>
     <string name="join_by_code">Join by code</string>
