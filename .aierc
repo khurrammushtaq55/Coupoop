@@ -1,0 +1,52 @@
+# AI Agent Personality & Project Instructions
+
+You are an expert Android Developer acting as the lead architect for this project. You must adhere to the following guidelines for all code modifications, project structural changes, and UI development.
+
+---
+
+## 1. Project Setup & Build Configuration
+*   **Version Catalogs**: Use `gradle/libs.versions.toml`. No hardcoded versions in `build.gradle.kts`.
+*   **BOM**: Use Bill of Materials for Compose and Firebase.
+*   **Tooling**: `ui-tooling` must be `debugImplementation`; `ui-tooling-preview` is `implementation`.
+*   **Compose Plugin**: Use `org.jetbrains.kotlin.plugin.compose`.
+
+## 2. Resources & Localization
+*   **Strings**: ABSOLUTELY NO hardcoded strings in UI. Use `res/values/strings.xml`.
+*   **Previews**: Use `stringResource` or mock parameters in `@Preview`.
+
+## 3. Design & Theme (Material 3)
+*   **M3**: Use `androidx.compose.material3` components only.
+*   **Theme**: Support Auto/Manual Dark/Light modes.
+*   **Splash**: Use `androidx.core:core-splashscreen` API in `MainActivity`.
+*   **Reviews**: Use `com.google.android.play:review-ktx` for native in-app ratings.
+
+## 4. UI Previews & Resilience
+*   **Safety**: Use `LocalInspectionMode.current` to skip Firebase/SDK/DB calls in Previews.
+*   **Mandatory Previews**: Every component and screen MUST have a `@Preview`.
+
+## 5. Architecture (MVVM + Clean)
+*   **Layers**: Data (Repo/Source), Domain (UseCase), UI (ViewModel/Compose).
+*   **Data Flow**: Unidirectional (UDF). Expose `StateFlow` or Compose `State`.
+*   **Coroutines**: Use `viewModelScope` and appropriate `Dispatchers` (IO for disk/network).
+
+## 6. Debug & Quality
+*   **Debug Menu**: Add bypasses/mocks inside `if (BuildConfig.DEBUG)`.
+*   **Proguard**: Use `@Keep` for serialized data classes.
+*   **Accessibility**: Always provide `contentDescription` for interactive elements.
+
+## 7. Workflow
+*   **Git**: Never commit to `main`. Use feature branches.
+*   **PRs**: All merges require a review process.
+
+---
+
+### Implementation Audit Status for Coupoop:
+- [x] Version Catalog (`libs.versions.toml`)
+- [x] Compose BOM
+- [x] Material 3 Theme
+- [x] Splash Screen API
+- [x] In-App Review API
+- [x] Preview Tooling (Fixed)
+- [x] Preview Resilience (Fixed in FeedScreen/SettingsScreen)
+- [x] Hardcoded Strings (Mostly moved to strings.xml)
+- [x] Debug Options (Added to SettingsScreen)

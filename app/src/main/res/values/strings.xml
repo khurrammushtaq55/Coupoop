@@ -78,6 +78,10 @@
     <string name="failed_leave_pairing">Failed to leave pairing</string>
     <string name="failed_delete_account">Failed to delete account</string>
 
+    <!-- Debug Options -->
+    <string name="debug_options">Debug Options</string>
+    <string name="debug_skip_auth">Skip Authentication (Mock)</string>
+
     <!-- Widget -->
     <string name="widget_description">One-tap poop log shortcut for your home screen</string>
     <string name="tap_to_log">Tap to log</string>
