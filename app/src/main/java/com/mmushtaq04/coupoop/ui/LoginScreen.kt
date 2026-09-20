@@ -163,9 +163,12 @@ fun LoginScreen(onSignedIn: () -> Unit) {
             border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFDADCE0))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Placeholder for Google "G" logo
-                Text("G ", fontWeight = FontWeight.Bold, color = Color.Blue) 
-                Spacer(modifier = Modifier.width(8.dp))
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = com.mmushtaq04.coupoop.R.drawable.ic_google_logo),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     "Sign in with Google",
                     style = MaterialTheme.typography.labelLarge

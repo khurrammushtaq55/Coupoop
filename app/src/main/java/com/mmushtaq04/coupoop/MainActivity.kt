@@ -47,7 +47,12 @@ class MainActivity : ComponentActivity() {
         if (user != null) {
             PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
                 if (pairingId != null) {
-                    LoggingManager.addLog(pairingId, user.uid, null, null, "Widget quick-log", user.displayName) { success, _ ->
+                    LoggingManager.addLog(
+                        pairingId = pairingId,
+                        userId = user.uid,
+                        note = "Widget quick-log",
+                        displayName = user.displayName
+                    ) { success, _ ->
                         // no-op; UI will reflect logs when app opens
                     }
                 }

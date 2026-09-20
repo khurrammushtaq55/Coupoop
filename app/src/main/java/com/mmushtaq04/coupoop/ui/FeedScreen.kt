@@ -156,7 +156,14 @@ fun FeedScreen(onSignOut: () -> Unit = {}) {
                 Button(
                     onClick = {
                         val pid = pairingIdState.value ?: return@Button
-                        LoggingManager.addLog(pid, user!!.uid, selectedBristol.value, selectedMood.value, selectedColor.value, null, null, user.displayName) { success, msg ->
+                        LoggingManager.addLog(
+                            pairingId = pid,
+                            userId = user!!.uid,
+                            bristol = selectedBristol.value,
+                            mood = selectedMood.value,
+                            color = selectedColor.value,
+                            displayName = user.displayName
+                        ) { success, msg ->
                             if (success) {
                                 selectedBristol.value = null
                                 selectedColor.value = null

@@ -1,16 +1,25 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { initializeApp } = require('firebase-admin/app');
+const { getFirestore, Timestamp } = require('firebase-admin/firestore');
+const { getMessaging } = require('firebase-admin/messaging');
 
-admin.initializeApp();
-const db = admin.firestore();
+initializeApp();
+// The app's data lives in a named Firestore database ("coupoop"), not
+// "(default)" — a v1 functions.firestore trigger can only ever listen on
+// the default database, so this must be a v2 trigger with `database` set,
+// and every Firestore call inside it must go through this same instance.
+const DATABASE_ID = 'coupoop';
+const db = getFirestore(DATABASE_ID);
 
 // Configuration: sync window in minutes
 const SYNC_WINDOW_MINUTES = 30;
 
-exports.onLogCreate = functions.firestore
-  .document('pairings/{pairingId}/logs/{logId}')
-  .onCreate(async (snap, context) => {
-    const { pairingId } = context.params;
+exports.onLogCreate = onDocumentCreated(
+  { document: 'pairings/{pairingId}/logs/{logId}', database: DATABASE_ID },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return null;
+    const { pairingId } = event.params;
     const log = snap.data();
     if (!log) return null;
 
@@ -57,10 +66,10 @@ exports.onLogCreate = functions.firestore
 
     // Send notification to member tokens
     if (tokens.length > 0) {
-      // chunk if needed; admin.messaging().sendMulticast supports up to 500 tokens
+      // chunk if needed; sendMulticast supports up to 500 tokens
       const uniqueTokens = Array.from(new Set(tokens));
       try {
-        await admin.messaging().sendMulticast({ tokens: uniqueTokens, ...notification });
+        await getMessaging().sendMulticast({ tokens: uniqueTokens, ...notification });
       } catch (e) {
         console.error('Failed to send notifications', e);
       }
@@ -93,7 +102,7 @@ exports.onLogCreate = functions.firestore
       const streakRef = pairingRef.collection('streaks').doc('sync');
       await db.runTransaction(async (tx) => {
         const sSnap = await tx.get(streakRef);
-        const now = admin.firestore.Timestamp.now();
+        const now = Timestamp.now();
         if (!sSnap.exists) {
           tx.set(streakRef, {
             currentStreak: 1,
@@ -129,10 +138,11 @@ exports.onLogCreate = functions.firestore
       const celebrationRef = pairingRef.collection('celebrations').doc();
       await celebrationRef.set({
         type: 'sync_moment',
-        at: admin.firestore.Timestamp.now(),
+        at: Timestamp.now(),
         participants: [userId, otherRecentLog.data.userId || null]
       });
     }
 
     return null;
-  });
+  }
+);
