@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.mmushtaq04.coupoop.ui.LoginScreen
 import com.mmushtaq04.coupoop.ui.FeedScreen
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.mutableIntStateOf
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +75,8 @@ fun CoupoopApp() {
     val debugPairingId = "DEBUG_PAIR_456"
     // --------------------
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var themeMode by remember { mutableIntStateOf(PrefsManager.getThemeMode(context)) }
     var currentUser by remember { mutableStateOf(AuthManager.currentUser()) }
 
     DisposableEffect(Unit) {
@@ -84,7 +87,7 @@ fun CoupoopApp() {
         onDispose { AuthManager.removeAuthStateListener(listener) }
     }
 
-    CoupoopTheme {
+    CoupoopTheme(themeMode = themeMode) {
         androidx.compose.material3.Scaffold { innerPadding ->
             Surface(
                 modifier = androidx.compose.ui.Modifier.padding(innerPadding)
@@ -93,12 +96,16 @@ fun CoupoopApp() {
                     FeedScreen(
                         onSignOut = { /* no-op in bypass */ },
                         forcedUserId = debugUserId,
-                        forcedPairingId = debugPairingId
+                        forcedPairingId = debugPairingId,
+                        onThemeChanged = { themeMode = it }
                     )
                 } else if (currentUser == null) {
                     LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
                 } else {
-                    FeedScreen(onSignOut = { AuthManager.signOut() })
+                    FeedScreen(
+                        onSignOut = { AuthManager.signOut() },
+                        onThemeChanged = { themeMode = it }
+                    )
                 }
             }
         }

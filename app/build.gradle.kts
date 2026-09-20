@@ -35,12 +35,9 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
-    // No composeOptions.kotlinCompilerExtensionVersion needed: the
-    // org.jetbrains.kotlin.plugin.compose Gradle plugin (applied above)
-    // picks the matching Compose compiler version automatically from
-    // the Kotlin version — setting it manually here would conflict.
 }
 
 dependencies {

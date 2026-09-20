@@ -43,7 +43,8 @@ import java.util.Date
 fun FeedScreen(
     onSignOut: () -> Unit = {},
     forcedUserId: String? = null,
-    forcedPairingId: String? = null
+    forcedPairingId: String? = null,
+    onThemeChanged: (Int) -> Unit = {}
 ) {
     val user = if (LocalInspectionMode.current) null else AuthManager.currentUser()
     val userId = forcedUserId ?: user?.uid
@@ -148,14 +149,18 @@ fun FeedScreen(
                 showSettings.value = false
                 refreshTrigger++
             },
-            onAccountDeleted = onSignOut
+            onAccountDeleted = onSignOut,
+            onThemeChanged = onThemeChanged
         )
         return
     }
 
     Scaffold(
         topBar = {
-            Header(onSettingsClick = { showSettings.value = true })
+            CoupoopTopBar(
+                title = stringResource(R.string.app_name),
+                onActionClick = { showSettings.value = true }
+            )
         }
     ) { padding ->
         LazyColumn(
@@ -258,30 +263,6 @@ fun FeedScreen(
 }
 
 @Composable
-fun Header(onSettingsClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = LightCoralDark)
-        Surface(
-            onClick = onSettingsClick,
-            shape = RoundedCornerShape(12.dp),
-            color = LightChipBg,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
-            modifier = Modifier.size(38.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("⚙", fontSize = 18.sp, color = LightCoralDark)
-            }
-        }
-    }
-}
-
-@Composable
 fun SectionLabel(text: String) {
     Text(
         text = text,
@@ -328,7 +309,6 @@ fun BristolChip(id: Int, emoji: String, label: String, isSelected: Boolean, onCl
         border = if (isSelected) null else BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Text(id.toString(), fontSize = 9.sp, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(emoji, fontSize = 20.sp)

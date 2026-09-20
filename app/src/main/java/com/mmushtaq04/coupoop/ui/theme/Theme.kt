@@ -49,11 +49,19 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun CoupoopTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: Int = com.mmushtaq04.coupoop.PrefsManager.THEME_SYSTEM,
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
+    val systemDark = isSystemInDarkTheme()
+    
+    val darkTheme = when (themeMode) {
+        com.mmushtaq04.coupoop.PrefsManager.THEME_LIGHT -> false
+        com.mmushtaq04.coupoop.PrefsManager.THEME_DARK -> true
+        else -> systemDark
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

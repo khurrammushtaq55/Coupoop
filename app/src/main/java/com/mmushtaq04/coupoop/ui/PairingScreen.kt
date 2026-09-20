@@ -52,151 +52,144 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
     val joinedPairingMsg = stringResource(R.string.joined_pairing)
     val failedJoinMsg = stringResource(R.string.failed_join)
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // 1. Decorative blobs — spec calls for a 36dp blur at 0.35 opacity.
-        // Modifier.blur() needs API 31+ (RenderEffect); below that it's a
-        // documented no-op rather than a crash, so this degrades gracefully
-        // to a flat, softer-edged circle at the same opacity on older devices.
-        Box(modifier = Modifier
-            .size(150.dp)
-            .align(Alignment.TopStart)
-            .offset(x = (-50).dp, y = (-50).dp)
-            .alpha(0.35f)
-            .blur(36.dp)
-            .background(LightCoral, CircleShape))
-        Box(modifier = Modifier
-            .size(150.dp)
-            .align(Alignment.TopEnd)
-            .offset(x = 50.dp, y = (-50).dp)
-            .alpha(0.35f)
-            .blur(36.dp)
-            .background(LightTeal, CircleShape))
-
-        // 2. Main Content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (user == null) {
-                Text(stringResource(R.string.sign_in_first))
-                return@Column
-            }
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Hero: 💩💕💩
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("💩", fontSize = 40.sp)
-                Text("💕", fontSize = 16.sp, modifier = Modifier.padding(horizontal = 4.dp))
-                Text("💩", fontSize = 40.sp)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Title
-            Text(
-                text = stringResource(R.string.find_buddy),
-                style = MaterialTheme.typography.titleLarge,
-                color = LightCoralDark,
-                textAlign = TextAlign.Center
+    Scaffold(
+        topBar = {
+            CoupoopTopBar(
+                title = stringResource(R.string.app_name),
+                onActionClick = onSettingsClick
             )
+        }
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            // 1. Decorative blobs — spec calls for a 36dp blur at 0.35 opacity.
+            // Modifier.blur() needs API 31+ (RenderEffect); below that it's a
+            // documented no-op rather than a crash, so this degrades gracefully
+            // to a flat, softer-edged circle at the same opacity on older devices.
+            Box(modifier = Modifier
+                .size(150.dp)
+                .align(Alignment.TopStart)
+                .offset(x = (-50).dp, y = (-50).dp)
+                .alpha(0.35f)
+                .blur(36.dp)
+                .background(LightCoral, CircleShape))
+            Box(modifier = Modifier
+                .size(150.dp)
+                .align(Alignment.TopEnd)
+                .offset(x = 50.dp, y = (-50).dp)
+                .alpha(0.35f)
+                .blur(36.dp)
+                .background(LightTeal, CircleShape))
 
-            // Subtitle
-            Text(
-                text = stringResource(R.string.invite_or_join),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Segmented Control
-            Surface(
+            // 2. Main Content
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(modifier = Modifier.padding(4.dp)) {
-                    TabItem(
-                        text = stringResource(R.string.tab_invite),
-                        isSelected = selectedTab == 0,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedTab = 0 }
+                if (user == null) {
+                    Text(stringResource(R.string.sign_in_first))
+                    return@Column
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // Hero: 💩💕💩
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("💩", fontSize = 40.sp)
+                    Text("💕", fontSize = 16.sp, modifier = Modifier.padding(horizontal = 4.dp))
+                    Text("💩", fontSize = 40.sp)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Title
+                Text(
+                    text = stringResource(R.string.find_buddy),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = LightCoralDark,
+                    textAlign = TextAlign.Center
+                )
+
+                // Subtitle
+                Text(
+                    text = stringResource(R.string.invite_or_join),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Segmented Control
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Row(modifier = Modifier.padding(4.dp)) {
+                        TabItem(
+                            text = stringResource(R.string.tab_invite),
+                            isSelected = selectedTab == 0,
+                            modifier = Modifier.weight(1f),
+                            onClick = { selectedTab = 0 }
+                        )
+                        TabItem(
+                            text = stringResource(R.string.tab_join),
+                            isSelected = selectedTab == 1,
+                            modifier = Modifier.weight(1f),
+                            onClick = { selectedTab = 1 }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                if (selectedTab == 0) {
+                    InvitePanel(
+                        currentInvite = currentInvite.value,
+                        onCreateClick = {
+                            status.value = creatingPairingMsg
+                            PairingManager.createPairing(user.uid) { success, invite, message ->
+                                if (success) {
+                                    currentInvite.value = invite
+                                    status.value = null
+                                } else {
+                                    status.value = message ?: failedCreateMsg
+                                }
+                            }
+                        },
+                        onContinueClick = onPaired
                     )
-                    TabItem(
-                        text = stringResource(R.string.tab_join),
-                        isSelected = selectedTab == 1,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedTab = 1 }
+                } else {
+                    JoinPanel(
+                        joinCode = joinCode.value,
+                        onCodeChange = { joinCode.value = it },
+                        onJoinClick = {
+                            status.value = joiningPairingMsg
+                            PairingManager.acceptPairingByCode(joinCode.value, user.uid) { success, message ->
+                                if (success) {
+                                    status.value = joinedPairingMsg
+                                    onPaired()
+                                } else {
+                                    status.value = message ?: failedJoinMsg
+                                }
+                            }
+                        }
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (selectedTab == 0) {
-                InvitePanel(
-                    currentInvite = currentInvite.value,
-                    onCreateClick = {
-                        status.value = creatingPairingMsg
-                        PairingManager.createPairing(user.uid) { success, invite, message ->
-                            if (success) {
-                                currentInvite.value = invite
-                                status.value = null
-                            } else {
-                                status.value = message ?: failedCreateMsg
-                            }
-                        }
-                    },
-                    onContinueClick = onPaired
-                )
-            } else {
-                JoinPanel(
-                    joinCode = joinCode.value,
-                    onCodeChange = { joinCode.value = it },
-                    onJoinClick = {
-                        status.value = joiningPairingMsg
-                        PairingManager.acceptPairingByCode(joinCode.value, user.uid) { success, message ->
-                            if (success) {
-                                status.value = joinedPairingMsg
-                                onPaired()
-                            } else {
-                                status.value = message ?: failedJoinMsg
-                            }
-                        }
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            status.value?.let { 
-                Text(
-                    it, 
-                    textAlign = TextAlign.Center, 
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                ) 
-            }
-        }
-
-        // 3. Settings Button (Drawn last = on top of everything)
-        Surface(
-            onClick = onSettingsClick,
-            shape = RoundedCornerShape(12.dp),
-            color = LightChipBg,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
-            modifier = Modifier
-                .padding(20.dp)
-                .size(38.dp)
-                .align(Alignment.TopEnd)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("⚙", fontSize = 18.sp, color = LightCoralDark)
+                Spacer(modifier = Modifier.height(16.dp))
+                status.value?.let { 
+                    Text(
+                        it, 
+                        textAlign = TextAlign.Center, 
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    ) 
+                }
             }
         }
     }
