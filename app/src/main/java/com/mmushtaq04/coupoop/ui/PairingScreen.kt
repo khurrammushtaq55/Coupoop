@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.PairingManager
+import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightChipBg
 import com.mmushtaq04.coupoop.ui.theme.LightCoral
@@ -43,6 +45,12 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
     val status = remember { mutableStateOf<String?>(null) }
     val joinCode = remember { mutableStateOf("") }
     val currentInvite = remember { mutableStateOf<String?>(null) }
+    
+    val creatingPairingMsg = stringResource(R.string.creating_pairing)
+    val failedCreateMsg = stringResource(R.string.failed_create_pairing)
+    val joiningPairingMsg = stringResource(R.string.joining_pairing)
+    val joinedPairingMsg = stringResource(R.string.joined_pairing)
+    val failedJoinMsg = stringResource(R.string.failed_join)
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 1. Decorative blobs — spec calls for a 36dp blur at 0.35 opacity.
@@ -72,7 +80,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (user == null) {
-                Text("Please sign in first")
+                Text(stringResource(R.string.sign_in_first))
                 return@Column
             }
 
@@ -89,7 +97,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
 
             // Title
             Text(
-                text = "Find your poop buddy",
+                text = stringResource(R.string.find_buddy),
                 style = MaterialTheme.typography.titleLarge,
                 color = LightCoralDark,
                 textAlign = TextAlign.Center
@@ -97,7 +105,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
 
             // Subtitle
             Text(
-                text = "Invite your partner or join with their code",
+                text = stringResource(R.string.invite_or_join),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -115,13 +123,13 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
             ) {
                 Row(modifier = Modifier.padding(4.dp)) {
                     TabItem(
-                        text = "💌 Invite",
+                        text = stringResource(R.string.tab_invite),
                         isSelected = selectedTab == 0,
                         modifier = Modifier.weight(1f),
                         onClick = { selectedTab = 0 }
                     )
                     TabItem(
-                        text = "🔑 Join",
+                        text = stringResource(R.string.tab_join),
                         isSelected = selectedTab == 1,
                         modifier = Modifier.weight(1f),
                         onClick = { selectedTab = 1 }
@@ -135,13 +143,13 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
                 InvitePanel(
                     currentInvite = currentInvite.value,
                     onCreateClick = {
-                        status.value = "Creating pairing..."
+                        status.value = creatingPairingMsg
                         PairingManager.createPairing(user.uid) { success, invite, message ->
                             if (success) {
                                 currentInvite.value = invite
                                 status.value = null
                             } else {
-                                status.value = message ?: "Failed to create pairing"
+                                status.value = message ?: failedCreateMsg
                             }
                         }
                     },
@@ -152,13 +160,13 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
                     joinCode = joinCode.value,
                     onCodeChange = { joinCode.value = it },
                     onJoinClick = {
-                        status.value = "Joining pairing..."
+                        status.value = joiningPairingMsg
                         PairingManager.acceptPairingByCode(joinCode.value, user.uid) { success, message ->
                             if (success) {
-                                status.value = "Joined pairing!"
+                                status.value = joinedPairingMsg
                                 onPaired()
                             } else {
-                                status.value = message ?: "Failed to join"
+                                status.value = message ?: failedJoinMsg
                             }
                         }
                     }
@@ -222,7 +230,7 @@ fun InvitePanel(
     if (currentInvite == null) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "Generate a one-tap invite and send it to your partner.",
+                stringResource(R.string.invite_helper),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -233,7 +241,7 @@ fun InvitePanel(
                 modifier = Modifier.fillMaxWidth(),
                 shape = CircleShape
             ) {
-                Text("Create invite code", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.create_invite_code), style = MaterialTheme.typography.labelLarge)
             }
         }
     } else {
@@ -252,7 +260,7 @@ fun InvitePanel(
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = LightTeal)
             ) {
-                Text("Continue to coupoop", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.continue_to_coupoop), style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -262,6 +270,7 @@ fun InvitePanel(
 fun InviteTicket(code: String) {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
+    val shareText = stringResource(R.string.share_text, code)
     
     Box(
         modifier = Modifier
@@ -284,7 +293,7 @@ fun InviteTicket(code: String) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "YOUR INVITE CODE",
+                stringResource(R.string.your_invite_code),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 1.sp
@@ -304,14 +313,14 @@ fun InviteTicket(code: String) {
                     onClick = { clipboardManager.setText(AnnotatedString(code)) },
                     shape = CircleShape
                 ) {
-                    Text("Copy")
+                    Text(stringResource(R.string.copy))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 OutlinedButton(
                     onClick = { 
                         val sendIntent: Intent = Intent().apply {
                             action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, "Join me on coupoop! Use my code: $code")
+                            putExtra(Intent.EXTRA_TEXT, shareText)
                             type = "text/plain"
                         }
                         val shareIntent = Intent.createChooser(sendIntent, null)
@@ -319,7 +328,7 @@ fun InviteTicket(code: String) {
                     },
                     shape = CircleShape
                 ) {
-                    Text("Share")
+                    Text(stringResource(R.string.share))
                 }
             }
         }
@@ -356,7 +365,7 @@ fun WaitingIndicator() {
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
-            "Waiting for your partner to join…",
+            stringResource(R.string.waiting_for_partner),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -371,7 +380,7 @@ fun JoinPanel(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            "Got a code from your partner? Enter it below.",
+            stringResource(R.string.join_helper),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -380,7 +389,7 @@ fun JoinPanel(
         OutlinedTextField(
             value = joinCode,
             onValueChange = { onCodeChange(it.trim().uppercase()) },
-            placeholder = { Text("Enter invite code") },
+            placeholder = { Text(stringResource(R.string.enter_invite_code)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp)
         )
@@ -390,7 +399,7 @@ fun JoinPanel(
             modifier = Modifier.fillMaxWidth(),
             shape = CircleShape
         ) {
-            Text("Join by code", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.join_by_code), style = MaterialTheme.typography.labelLarge)
         }
     }
 }

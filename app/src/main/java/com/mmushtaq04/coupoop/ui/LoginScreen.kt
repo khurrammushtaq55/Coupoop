@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -23,7 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,12 +29,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.FcmManager
+import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
 
 @Composable
 fun LoginScreen(onSignedIn: () -> Unit) {
     val status = remember { mutableStateOf<String?>(null) }
+    val signingInMsg = stringResource(R.string.signing_in)
+    val signInSuccessMsg = stringResource(R.string.sign_in_success)
+    val signInFailedMsg = stringResource(R.string.sign_in_failed)
+    val googleAuthMsg = stringResource(R.string.google_authenticating)
+    val googleLinkMsg = stringResource(R.string.google_link_success)
+    val fcmFailMsg = stringResource(R.string.fcm_reg_failed)
 
     Column(
         modifier = Modifier
@@ -52,7 +57,7 @@ fun LoginScreen(onSignedIn: () -> Unit) {
         
         // 2. "coupoop" wordmark
         Text(
-            text = "coupoop",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineLarge,
             color = LightCoralDark
         )
@@ -61,7 +66,7 @@ fun LoginScreen(onSignedIn: () -> Unit) {
         
         // 3. Tagline
         Text(
-            text = "The playful way to keep track together",
+            text = stringResource(R.string.tagline),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -73,19 +78,19 @@ fun LoginScreen(onSignedIn: () -> Unit) {
         // 4. Primary Button
         Button(
             onClick = {
-                status.value = "Signing in..."
+                status.value = signingInMsg
                 AuthManager.signInAnonymously { success, message ->
                     if (success) {
                         FcmManager.registerTokenForCurrentUser { regOk, regMsg ->
                             status.value = if (!regOk) {
-                                "Signed in (FCM reg failed: ${regMsg ?: "unknown"})"
+                                fcmFailMsg.format(regMsg ?: "unknown")
                             } else {
-                                "You're in — ready to sync! 🎉"
+                                signInSuccessMsg
                             }
                             onSignedIn()
                         }
                     } else {
-                        status.value = message ?: "Sign in failed — try again"
+                        status.value = message ?: signInFailedMsg
                     }
                 }
             },
@@ -93,7 +98,7 @@ fun LoginScreen(onSignedIn: () -> Unit) {
             shape = MaterialTheme.shapes.extraLarge // Using round shape
         ) {
             Text(
-                "Quick anonymous sign-in — start syncing 💨",
+                stringResource(R.string.quick_sign_in),
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -102,7 +107,7 @@ fun LoginScreen(onSignedIn: () -> Unit) {
         
         // 5. Divider
         Text(
-            text = "— or —",
+            text = stringResource(R.string.or_divider),
             style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold
@@ -130,28 +135,28 @@ fun LoginScreen(onSignedIn: () -> Unit) {
                 val account = task.getResult(com.google.android.gms.common.api.ApiException::class.java)
                 val idToken = account.idToken
                 if (idToken != null) {
-                    status.value = "Authenticating with Google..."
+                    status.value = googleAuthMsg
                     AuthManager.signInWithGoogle(idToken) { success, msg ->
                         if (success) {
                             FcmManager.registerTokenForCurrentUser { _, _ ->
-                                status.value = "Google account linked successfully! 🎉"
+                                status.value = googleLinkMsg
                                 onSignedIn()
                             }
                         } else {
-                            status.value = msg ?: "Firebase authentication failed"
+                            status.value = msg ?: context.getString(R.string.firebase_auth_failed)
                         }
                     }
                 } else {
-                    status.value = "Google login error: Could not retrieve ID Token."
+                    status.value = context.getString(R.string.google_token_error)
                 }
             } catch (e: Exception) {
-                status.value = "Google login canceled or failed: ${e.localizedMessage}"
+                status.value = context.getString(R.string.google_login_failed, e.localizedMessage)
             }
         }
 
         OutlinedButton(
             onClick = {
-                status.value = "Opening Google Sign-In..."
+                status.value = context.getString(R.string.opening_google_sign_in)
                 launcher.launch(googleSignInClient.signInIntent)
             },
             modifier = Modifier.fillMaxWidth(),
@@ -170,7 +175,7 @@ fun LoginScreen(onSignedIn: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    "Sign in with Google",
+                    stringResource(R.string.sign_in_with_google),
                     style = MaterialTheme.typography.labelLarge
                 )
             }

@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
         // Attempt background quick log if user is signed in and has a pairing
         val user = AuthManager.currentUser()
         if (user != null) {
+            val logNote = getString(R.string.widget_log_note)
             PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
                 if (pairingId != null) {
                     LoggingManager.addLog(

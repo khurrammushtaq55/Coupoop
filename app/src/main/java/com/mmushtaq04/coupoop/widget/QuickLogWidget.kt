@@ -19,6 +19,7 @@ import androidx.glance.layout.padding
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.mmushtaq04.coupoop.MainActivity
+import com.mmushtaq04.coupoop.R
 
 class QuickLogWidget : GlanceAppWidget() {
 
@@ -46,11 +47,11 @@ class QuickLogWidget : GlanceAppWidget() {
                 .clickable(actionStartActivity(quickLogIntent))
         ) {
             Text(
-                text = "One-tap log 💩",
+                text = context.getString(R.string.one_tap_log),
                 style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer)
             )
             Text(
-                text = "Tap to log",
+                text = context.getString(R.string.tap_to_log),
                 style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer)
             )
         }

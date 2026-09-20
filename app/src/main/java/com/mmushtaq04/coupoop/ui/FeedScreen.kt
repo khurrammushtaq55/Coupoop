@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +31,7 @@ import com.google.firebase.firestore.Query
 import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.LoggingManager
 import com.mmushtaq04.coupoop.PairingManager
+import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.RatingManager
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightChipBg
@@ -42,13 +45,27 @@ fun FeedScreen(
     forcedUserId: String? = null,
     forcedPairingId: String? = null
 ) {
-    val user = AuthManager.currentUser()
+    val user = if (LocalInspectionMode.current) null else AuthManager.currentUser()
     val userId = forcedUserId ?: user?.uid
 
     val pairingIdState = remember { mutableStateOf(forcedPairingId) }
     val pairingChecked = remember { mutableStateOf(forcedPairingId != null) }
     var refreshTrigger by remember { mutableStateOf(0) }
-    val logs = remember { mutableStateListOf<Map<String, Any>>() }
+    val isPreview = LocalInspectionMode.current
+    val logs = remember { 
+        mutableStateListOf<Map<String, Any>>().apply {
+            if (isPreview && forcedPairingId != null) {
+                add(mapOf(
+                    "displayName" to "Alex",
+                    "timestamp" to Timestamp.now(),
+                    "bristolType" to 4L,
+                    "color" to "brown",
+                    "mood" to "good",
+                    "reactions" to mapOf("uid1" to "❤️")
+                ))
+            }
+        }
+    }
     val status = remember { mutableStateOf<String?>(null) }
     val celebration = remember { mutableStateOf(false) }
     val showSettings = remember { mutableStateOf(false) }
@@ -58,8 +75,10 @@ fun FeedScreen(
     val selectedMood = remember { mutableStateOf<String?>(null) }
     
     val ctx = LocalContext.current
+    val loggedSuccessMsg = stringResource(R.string.logged_success)
 
     DisposableEffect(userId, refreshTrigger, forcedPairingId) {
+        if (isPreview) return@DisposableEffect onDispose {}
         var logsRegistration: ListenerRegistration? = null
         var celebrationsRegistration: ListenerRegistration? = null
 
@@ -150,17 +169,17 @@ fun FeedScreen(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                SectionLabel("Type (optional)")
+                SectionLabel(stringResource(R.string.type_optional))
                 BristolTypePicker(selectedBristol.value) { selectedBristol.value = it }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                SectionLabel("Color (optional)")
+                SectionLabel(stringResource(R.string.color_optional))
                 PoopColorPicker(selectedColor.value) { selectedColor.value = it }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                SectionLabel("Mood (optional)")
+                SectionLabel(stringResource(R.string.mood_optional))
                 MoodPicker(selectedMood.value) { selectedMood.value = it }
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -181,7 +200,7 @@ fun FeedScreen(
                                 selectedBristol.value = null
                                 selectedColor.value = null
                                 selectedMood.value = null
-                                status.value = "Logged! 💩"
+                                status.value = loggedSuccessMsg
                             } else {
                                 status.value = msg
                             }
@@ -190,7 +209,7 @@ fun FeedScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = CircleShape
                 ) {
-                    Text("Log 💩", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.log_poop), style = MaterialTheme.typography.labelLarge)
                 }
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -204,7 +223,7 @@ fun FeedScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(modifier = Modifier.padding(12.dp), contentAlignment = Alignment.Center) {
-                        Text("Share weekly recap", style = MaterialTheme.typography.labelLarge, color = LightCoralDark)
+                        Text(stringResource(R.string.share_recap), style = MaterialTheme.typography.labelLarge, color = LightCoralDark)
                     }
                 }
 
@@ -219,7 +238,7 @@ fun FeedScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-                Text("Recent activity", style = MaterialTheme.typography.headlineMedium.copy(fontSize = 16.sp))
+                Text(stringResource(R.string.recent_activity), style = MaterialTheme.typography.headlineMedium.copy(fontSize = 16.sp))
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -247,7 +266,7 @@ fun Header(onSettingsClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("coupoop", style = MaterialTheme.typography.headlineMedium, color = LightCoralDark)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = LightCoralDark)
         Surface(
             onClick = onSettingsClick,
             shape = RoundedCornerShape(12.dp),
@@ -371,7 +390,7 @@ fun CelebrationBanner(visible: Boolean) {
             shape = RoundedCornerShape(16.dp)
         ) {
             Text(
-                "🎉 Sync moment! You two logged close together 🎉",
+                stringResource(R.string.sync_moment),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color(0xFF3F2E00),
                 modifier = Modifier.padding(14.dp),
@@ -394,7 +413,7 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
             val displayName = log["displayName"] as? String
             
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text(displayName ?: "Someone", style = MaterialTheme.typography.titleMedium)
+                Text(displayName ?: stringResource(R.string.someone), style = MaterialTheme.typography.titleMedium)
                 Text(relativeTime(ts?.toDate()), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             
@@ -403,7 +422,7 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
             val mood = log["mood"] as? String
             
             val meta = listOfNotNull(
-                bristol?.let { "Type $it" },
+                bristol?.let { stringResource(R.string.bristol_type, it) },
                 color?.replaceFirstChar { it.uppercase() },
                 mood?.replaceFirstChar { it.uppercase() }
             ).joinToString(" • ")
@@ -453,18 +472,19 @@ fun EmptyState() {
     ) {
         Text("🫥", fontSize = 36.sp)
         Spacer(modifier = Modifier.height(8.dp))
-        Text("No logs yet — tap 'Log 💩' to start", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.no_logs_yet), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
+@Composable
 private fun relativeTime(date: Date?): String {
     if (date == null) return ""
     val diffMinutes = (System.currentTimeMillis() - date.time) / 60000
     return when {
-        diffMinutes < 1 -> "just now"
-        diffMinutes < 60 -> "${diffMinutes}m ago"
-        diffMinutes < 60 * 24 -> "${diffMinutes / 60}h ago"
-        else -> "${diffMinutes / (60 * 24)}d ago"
+        diffMinutes < 1 -> stringResource(R.string.just_now)
+        diffMinutes < 60 -> stringResource(R.string.minutes_ago, diffMinutes)
+        diffMinutes < 60 * 24 -> stringResource(R.string.hours_ago, diffMinutes / 60)
+        else -> stringResource(R.string.days_ago, diffMinutes / (60 * 24))
     }
 }
 
@@ -472,7 +492,10 @@ private fun relativeTime(date: Date?): String {
 @Composable
 fun FeedScreenPreview() {
     CoupoopTheme {
-        FeedScreen()
+        FeedScreen(
+            forcedUserId = "preview_user",
+            forcedPairingId = "preview_pairing"
+        )
     }
 }
 
