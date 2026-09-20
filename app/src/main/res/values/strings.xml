@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">coupoop</string>
+    <string name="app_name">Coupoop</string>
 
     <!-- Login Screen -->
     <string name="tagline">The playful way to keep track together</string>
@@ -77,6 +77,10 @@
     <string name="failed_update_mute">Failed to update notification setting</string>
     <string name="failed_leave_pairing">Failed to leave pairing</string>
     <string name="failed_delete_account">Failed to delete account</string>
+    <string name="theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
 
     <!-- Debug Options -->
     <string name="debug_options">Debug Options</string>

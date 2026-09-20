@@ -31,8 +31,11 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onSignOut: () -> Unit,
     onLeftPairing: () -> Unit,
-    onAccountDeleted: () -> Unit
+    onAccountDeleted: () -> Unit,
+    onThemeChanged: (Int) -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var themeMode by remember { mutableIntStateOf(com.mmushtaq04.coupoop.PrefsManager.getThemeMode(context)) }
     var status by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var working by remember { mutableStateOf(false) }
@@ -58,33 +61,11 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    stringResource(R.string.settings),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = LightCoralDark
-                )
-                Surface(
-                    onClick = onBack,
-                    shape = RoundedCornerShape(12.dp),
-                    color = LightChipBg,
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    ),
-                    modifier = Modifier.size(44.dp) // Slightly larger than header
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("✕", fontSize = 20.sp, color = LightCoralDark)
-                    }
-                }
-            }
+            CoupoopTopBar(
+                title = stringResource(R.string.settings),
+                onActionClick = onBack,
+                actionIcon = "✕"
+            )
         }
     ) { padding ->
         Column(
@@ -95,6 +76,54 @@ fun SettingsScreen(
         ) {
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                stringResource(R.string.theme),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val themes = listOf(
+                    com.mmushtaq04.coupoop.PrefsManager.THEME_SYSTEM to stringResource(R.string.theme_system),
+                    com.mmushtaq04.coupoop.PrefsManager.THEME_LIGHT to stringResource(R.string.theme_light),
+                    com.mmushtaq04.coupoop.PrefsManager.THEME_DARK to stringResource(R.string.theme_dark)
+                )
+
+                themes.forEach { (mode, label) ->
+                    val isSelected = themeMode == mode
+                    OutlinedButton(
+                        onClick = {
+                            themeMode = mode
+                            com.mmushtaq04.coupoop.PrefsManager.setThemeMode(context, mode)
+                            onThemeChanged(mode)
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = CircleShape,
+                        colors = if (isSelected) {
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        } else {
+                            ButtonDefaults.outlinedButtonColors()
+                        },
+                        border = if (isSelected) {
+                            null
+                        } else {
+                            ButtonDefaults.outlinedButtonBorder
+                        }
+                    ) {
+                        Text(label, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedButton(
                 onClick = onSignOut,
@@ -248,7 +277,8 @@ fun SettingsScreenPreview() {
             onBack = {},
             onSignOut = {},
             onLeftPairing = {},
-            onAccountDeleted = {}
+            onAccountDeleted = {},
+            onThemeChanged = {}
         )
     }
 }
