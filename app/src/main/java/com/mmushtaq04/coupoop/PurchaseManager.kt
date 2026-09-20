@@ -20,7 +20,7 @@ object PurchaseManager {
 
     // Dev-only helper to mark user as premium (for testing). Real app should use Play Billing.
     fun markUserPremium(uid: String, onResult: (Boolean, String?) -> Unit) {
-        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance("coupoop")
         db.collection("users").document(uid).set(mapOf("premium" to true), com.google.firebase.firestore.SetOptions.merge())
             .addOnSuccessListener { onResult(true, null) }
             .addOnFailureListener { e -> onResult(false, e.localizedMessage) }

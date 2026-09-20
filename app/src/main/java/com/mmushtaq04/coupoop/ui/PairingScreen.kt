@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
@@ -44,18 +45,23 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
     val currentInvite = remember { mutableStateOf<String?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Decorative Blobs
+        // Decorative blobs — spec calls for a 36dp blur at 0.35 opacity.
+        // Modifier.blur() needs API 31+ (RenderEffect); below that it's a
+        // documented no-op rather than a crash, so this degrades gracefully
+        // to a flat, softer-edged circle at the same opacity on older devices.
         Box(modifier = Modifier
             .size(150.dp)
             .align(Alignment.TopStart)
             .offset(x = (-50).dp, y = (-50).dp)
-            .alpha(0.1f)
+            .alpha(0.35f)
+            .blur(36.dp)
             .background(LightCoral, CircleShape))
         Box(modifier = Modifier
             .size(150.dp)
             .align(Alignment.TopEnd)
             .offset(x = 50.dp, y = (-50).dp)
-            .alpha(0.1f)
+            .alpha(0.35f)
+            .blur(36.dp)
             .background(LightTeal, CircleShape))
 
         // Settings Button
