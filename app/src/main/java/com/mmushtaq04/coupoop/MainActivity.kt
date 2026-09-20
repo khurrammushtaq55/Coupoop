@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.material3.Surface
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import androidx.compose.runtime.Composable
@@ -15,9 +16,11 @@ import androidx.compose.runtime.setValue
 import com.google.firebase.auth.FirebaseAuth
 import com.mmushtaq04.coupoop.ui.LoginScreen
 import com.mmushtaq04.coupoop.ui.FeedScreen
+import androidx.compose.foundation.layout.padding
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         setContent {
@@ -71,12 +74,16 @@ fun CoupoopApp() {
     }
 
     CoupoopTheme {
-        Surface {
-            if (currentUser == null) {
-                LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
-            } else {
-                // Show feed; if no pairing exists the FeedScreen will prompt to create/join
-                FeedScreen(onSignOut = { AuthManager.signOut() })
+        androidx.compose.material3.Scaffold { innerPadding ->
+            Surface(
+                modifier = androidx.compose.ui.Modifier.padding(innerPadding)
+            ) {
+                if (currentUser == null) {
+                    LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
+                } else {
+                    // Show feed; if no pairing exists the FeedScreen will prompt to create/join
+                    FeedScreen(onSignOut = { AuthManager.signOut() })
+                }
             }
         }
     }

@@ -11,7 +11,7 @@ import com.google.firebase.firestore.SetOptions
  * users/{uid} doc may not exist yet the very first time this is touched.
  */
 object NotificationPrefsManager {
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance("coupoop")
 
     fun isPairingMuted(userUid: String, pairingId: String, onResult: (Boolean) -> Unit) {
         db.collection("users").document(userUid).get()

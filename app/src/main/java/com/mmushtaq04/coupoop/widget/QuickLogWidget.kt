@@ -6,16 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionStartActivity
-import androidx.glance.appwidget.background
 import androidx.glance.appwidget.provideContent
+import androidx.glance.background
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
-import androidx.glance.material3.GlanceTheme
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.mmushtaq04.coupoop.MainActivity
@@ -41,7 +41,7 @@ class QuickLogWidget : GlanceAppWidget() {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.primaryContainer, cornerRadius = 16.dp)
+                .background(GlanceTheme.colors.primaryContainer)
                 .padding(12.dp)
                 .clickable(actionStartActivity(quickLogIntent))
         ) {

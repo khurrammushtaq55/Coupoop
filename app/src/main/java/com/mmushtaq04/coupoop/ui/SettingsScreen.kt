@@ -1,25 +1,21 @@
 package com.mmushtaq04.coupoop.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mmushtaq04.coupoop.AccountManager
 import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.NotificationPrefsManager
 import com.mmushtaq04.coupoop.PairingManager
+import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
+import com.mmushtaq04.coupoop.ui.theme.Danger
+import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
 
 @Composable
 fun SettingsScreen(
@@ -45,21 +41,34 @@ fun SettingsScreen(
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .padding(16.dp)) {
-        Button(onClick = onBack) {
-            Text("← Back")
+        .padding(20.dp)) {
+        
+        TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) {
+            Text("← Back", style = MaterialTheme.typography.labelLarge)
         }
 
-        Text("Settings", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 16.dp))
+        Text(
+            "Settings", 
+            style = MaterialTheme.typography.headlineMedium, 
+            color = LightCoralDark,
+            modifier = Modifier.padding(top = 16.dp)
+        )
 
-        Button(onClick = onSignOut, modifier = Modifier.padding(top = 16.dp)) {
-            Text("Sign out")
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedButton(
+            onClick = onSignOut,
+            modifier = Modifier.fillMaxWidth(),
+            shape = CircleShape
+        ) {
+            Text("Sign out", style = MaterialTheme.typography.labelLarge)
         }
 
         if (pairingId != null) {
-            Button(
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
                 onClick = {
-                    val user = AuthManager.currentUser() ?: return@Button
+                    val user = AuthManager.currentUser() ?: return@OutlinedButton
                     val newValue = !muted
                     NotificationPrefsManager.setPairingMuted(user.uid, pairingId, newValue) { success, message ->
                         if (success) {
@@ -69,14 +78,22 @@ fun SettingsScreen(
                         }
                     }
                 },
-                modifier = Modifier.padding(top = 12.dp)
+                modifier = Modifier.fillMaxWidth(),
+                shape = CircleShape
             ) {
-                Text(if (muted) "Unmute notifications" else "Mute notifications")
+                Text(if (muted) "Unmute notifications" else "Mute notifications", style = MaterialTheme.typography.labelLarge)
             }
+            Text(
+                "Applies to this pairing only",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
 
-            Button(
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
                 onClick = {
-                    val user = AuthManager.currentUser() ?: return@Button
+                    val user = AuthManager.currentUser() ?: return@OutlinedButton
                     working = true
                     status = "Leaving pairing..."
                     PairingManager.leavePairing(pairingId, user.uid) { success, message ->
@@ -88,20 +105,31 @@ fun SettingsScreen(
                         }
                     }
                 },
-                modifier = Modifier.padding(top = 12.dp)
+                modifier = Modifier.fillMaxWidth(),
+                shape = CircleShape
             ) {
-                Text("Leave pairing")
+                Text("Leave pairing", style = MaterialTheme.typography.labelLarge)
             }
         }
 
+        Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = { showDeleteConfirm = true },
-            modifier = Modifier.padding(top = 24.dp)
+            modifier = Modifier.fillMaxWidth(),
+            shape = CircleShape,
+            colors = ButtonDefaults.buttonColors(containerColor = Danger)
         ) {
-            Text("Delete my account")
+            Text("Delete my account", style = MaterialTheme.typography.labelLarge, color = Color.White)
         }
 
-        status?.let { Text(it, modifier = Modifier.padding(top = 12.dp)) }
+        status?.let { 
+            Text(
+                it, 
+                modifier = Modifier.padding(top = 12.dp),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            ) 
+        }
     }
 
     if (showDeleteConfirm) {
@@ -123,14 +151,30 @@ fun SettingsScreen(
                         }
                     }
                 }) {
-                    Text("Delete")
+                    Text("Delete", color = Danger)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
                     Text("Cancel")
                 }
-            }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenPreview() {
+    CoupoopTheme {
+        SettingsScreen(
+            pairingId = "pair123",
+            onBack = {},
+            onSignOut = {},
+            onLeftPairing = {},
+            onAccountDeleted = {}
         )
     }
 }

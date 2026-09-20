@@ -6,13 +6,15 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
 object LoggingManager {
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance("coupoop")
 
     fun addLog(
         pairingId: String,
         userId: String,
         bristol: Int? = null,
         mood: String? = null,
+        color: String? = null,
+        photoUrl: String? = null,
         note: String? = null,
         displayName: String? = null,
         onResult: (Boolean, String?) -> Unit
@@ -23,6 +25,8 @@ object LoggingManager {
             "timestamp" to Timestamp.now(),
             "bristolType" to bristol,
             "mood" to mood,
+            "color" to color,
+            "photoUrl" to photoUrl,
             "note" to note
         )
         db.collection("pairings").document(pairingId)

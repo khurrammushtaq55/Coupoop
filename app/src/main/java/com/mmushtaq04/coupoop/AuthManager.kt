@@ -21,6 +21,37 @@ object AuthManager {
             }
     }
 
+    fun signInWithGoogle(idToken: String, onResult: (success: Boolean, message: String?) -> Unit) {
+        val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
+        
+        // If an anonymous account is already active, link it instead of creating a fresh one!
+        val anonymousUser = auth.currentUser
+        if (anonymousUser != null && anonymousUser.isAnonymous) {
+            anonymousUser.linkWithCredential(credential)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        onResult(true, null)
+                    } else {
+                        // If linking fails because this Google account already exists, fall back to standard sign-in
+                        auth.signInWithCredential(credential)
+                            .addOnCompleteListener { loginTask ->
+                                if (loginTask.isSuccessful) onResult(true, null)
+                                else onResult(false, loginTask.exception?.localizedMessage)
+                            }
+                    }
+                }
+        } else {
+            auth.signInWithCredential(credential)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        onResult(true, null)
+                    } else {
+                        onResult(false, task.exception?.localizedMessage)
+                    }
+                }
+        }
+    }
+
     fun signOut() {
         auth.signOut()
     }

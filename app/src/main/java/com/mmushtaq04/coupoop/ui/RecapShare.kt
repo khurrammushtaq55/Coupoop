@@ -20,7 +20,7 @@ object RecapShare {
      * generates and shares the recap image.
      */
     fun shareWeeklyRecap(context: Context, pairingId: String) {
-        val db = FirebaseFirestore.getInstance()
+        val db = FirebaseFirestore.getInstance("coupoop")
         val pairingRef = db.collection("pairings").document(pairingId)
         val sevenDaysAgo = Timestamp(Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)))
 
