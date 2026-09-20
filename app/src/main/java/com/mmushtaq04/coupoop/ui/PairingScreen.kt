@@ -40,7 +40,8 @@ import com.mmushtaq04.coupoop.ui.theme.LightTeal
 
 @Composable
 fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
-    val user = AuthManager.currentUser()
+    val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current
+    val user = if (isPreview) null else AuthManager.currentUser()
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Invite, 1: Join
     val status = remember { mutableStateOf<String?>(null) }
     val joinCode = remember { mutableStateOf("") }
@@ -56,28 +57,22 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
         topBar = {
             CoupoopTopBar(
                 title = stringResource(R.string.app_name),
-                onActionClick = onSettingsClick
+                onActionClick = null
             )
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // 1. Decorative blobs — spec calls for a 36dp blur at 0.35 opacity.
-            // Modifier.blur() needs API 31+ (RenderEffect); below that it's a
-            // documented no-op rather than a crash, so this degrades gracefully
-            // to a flat, softer-edged circle at the same opacity on older devices.
             Box(modifier = Modifier
-                .size(150.dp)
+                .size(180.dp)
                 .align(Alignment.TopStart)
                 .offset(x = (-50).dp, y = (-50).dp)
-                .alpha(0.35f)
-                .blur(36.dp)
+                .alpha(0.1f)
                 .background(LightCoral, CircleShape))
             Box(modifier = Modifier
-                .size(150.dp)
+                .size(180.dp)
                 .align(Alignment.TopEnd)
                 .offset(x = 50.dp, y = (-50).dp)
-                .alpha(0.35f)
-                .blur(36.dp)
+                .alpha(0.1f)
                 .background(LightTeal, CircleShape))
 
             // 2. Main Content
@@ -87,7 +82,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (user == null) {
+                if (user == null && !isPreview) {
                     Text(stringResource(R.string.sign_in_first))
                     return@Column
                 }
@@ -152,7 +147,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
                         currentInvite = currentInvite.value,
                         onCreateClick = {
                             status.value = creatingPairingMsg
-                            PairingManager.createPairing(user.uid) { success, invite, message ->
+                            PairingManager.createPairing(user?.uid.orEmpty()) { success, invite, message ->
                                 if (success) {
                                     currentInvite.value = invite
                                     status.value = null
@@ -169,7 +164,7 @@ fun PairingScreen(onPaired: () -> Unit = {}, onSettingsClick: () -> Unit = {}) {
                         onCodeChange = { joinCode.value = it },
                         onJoinClick = {
                             status.value = joiningPairingMsg
-                            PairingManager.acceptPairingByCode(joinCode.value, user.uid) { success, message ->
+                            PairingManager.acceptPairingByCode(joinCode.value, user?.uid.orEmpty()) { success, message ->
                                 if (success) {
                                     status.value = joinedPairingMsg
                                     onPaired()
@@ -400,7 +395,7 @@ fun JoinPanel(
 @Preview(showBackground = true)
 @Composable
 fun PairingScreenPreview() {
-    com.mmushtaq04.coupoop.ui.theme.CoupoopTheme {
+    CoupoopTheme {
         PairingScreen(onPaired = {}, onSettingsClick = {})
     }
 }
@@ -408,7 +403,7 @@ fun PairingScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 fun InviteTicketPreview() {
-    com.mmushtaq04.coupoop.ui.theme.CoupoopTheme {
+    CoupoopTheme {
         InviteTicket(code = "ABC123")
     }
 }

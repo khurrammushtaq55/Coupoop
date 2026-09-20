@@ -37,7 +37,14 @@ import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightChipBg
 import com.mmushtaq04.coupoop.ui.theme.LightCoral
 import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
+import nl.dionsegijn.konfetti.compose.KonfettiView
+import nl.dionsegijn.konfetti.compose.OnParticleSystemUpdateListener
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.emitter.Emitter
+import nl.dionsegijn.konfetti.core.PartySystem
 import java.util.Date
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun FeedScreen(
@@ -75,6 +82,11 @@ fun FeedScreen(
     val selectedColor = remember { mutableStateOf<String?>(null) }
     val selectedMood = remember { mutableStateOf<String?>(null) }
     
+    val currentStreak = remember { mutableIntStateOf(0) }
+    val weeklyCount = remember { mutableIntStateOf(0) }
+
+    val confettiState = remember { mutableStateListOf<Party>() }
+    
     val ctx = LocalContext.current
     val loggedSuccessMsg = stringResource(R.string.logged_success)
 
@@ -82,12 +94,19 @@ fun FeedScreen(
         if (isPreview) return@DisposableEffect onDispose {}
         var logsRegistration: ListenerRegistration? = null
         var celebrationsRegistration: ListenerRegistration? = null
+        var streakRegistration: ListenerRegistration? = null
 
         if (forcedPairingId != null) {
             // Bypass mode: use the forced pairing ID immediately
             logsRegistration = LoggingManager.listenForLogs(forcedPairingId) { items ->
                 logs.clear()
                 logs.addAll(items)
+                
+                // Calculate weekly count locally from the logs we already have
+                val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
+                weeklyCount.intValue = items.count { 
+                    (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo 
+                }
             }
         } else if (userId != null) {
             pairingChecked.value = false
@@ -98,6 +117,12 @@ fun FeedScreen(
                     logsRegistration = LoggingManager.listenForLogs(pairingId) { items ->
                         logs.clear()
                         logs.addAll(items)
+                        
+                        // Calculate weekly count locally
+                        val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
+                        weeklyCount.intValue = items.count { 
+                            (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo 
+                        }
                     }
                     celebrationsRegistration = FirebaseFirestore.getInstance("coupoop")
                         .collection("pairings").document(pairingId)
@@ -108,12 +133,21 @@ fun FeedScreen(
                             if (err != null || snap == null) return@addSnapshotListener
                             if (!snap.isEmpty) { celebration.value = true }
                         }
+                        
+                    streakRegistration = FirebaseFirestore.getInstance("coupoop")
+                        .collection("pairings").document(pairingId)
+                        .collection("streaks").document("sync")
+                        .addSnapshotListener { snap, err ->
+                            if (err != null || snap == null) return@addSnapshotListener
+                            currentStreak.intValue = (snap.getLong("currentStreak") ?: 0L).toInt()
+                        }
                 }
             }
         }
         onDispose {
             logsRegistration?.remove()
             celebrationsRegistration?.remove()
+            streakRegistration?.remove()
         }
     }
 
@@ -170,6 +204,12 @@ fun FeedScreen(
                 .padding(horizontal = 20.dp)
         ) {
             item {
+                StatsStrip(
+                    streak = currentStreak.intValue,
+                    weeklyCount = weeklyCount.intValue,
+                    lastLoggedTs = logs.firstOrNull()?.get("timestamp") as? Timestamp
+                )
+                
                 CelebrationBanner(visible = celebration.value)
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -195,17 +235,32 @@ fun FeedScreen(
                         val uid = userId ?: return@Button
                         LoggingManager.addLog(
                             pairingId = pid,
-                            userId = user!!.uid,
+                            userId = uid,
                             bristol = selectedBristol.value,
                             mood = selectedMood.value,
                             color = selectedColor.value,
-                            displayName = user.displayName
+                            displayName = user?.displayName ?: "Debug User"
                         ) { success, msg ->
                             if (success) {
                                 selectedBristol.value = null
                                 selectedColor.value = null
                                 selectedMood.value = null
                                 status.value = loggedSuccessMsg
+
+                                // Trigger confetti burst 💩🎉
+                                confettiState.addAll(
+                                    listOf(
+                                        Party(
+                                            speed = 0f,
+                                            maxSpeed = 30f,
+                                            damping = 0.9f,
+                                            spread = 360,
+                                            colors = listOf(0xFFB94A31.toInt(), 0xFFFF6B4A.toInt(), 0xFF2AB6A6.toInt()),
+                                            position = Position.Relative(0.5, 0.7),
+                                            emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(30)
+                                        )
+                                    )
+                                )
                             } else {
                                 status.value = msg
                             }
@@ -258,6 +313,50 @@ fun FeedScreen(
             }
             
             item { Spacer(modifier = Modifier.height(32.dp)) }
+        }
+
+        KonfettiView(
+            modifier = Modifier.fillMaxSize(),
+            parties = confettiState,
+            updateListener = object : OnParticleSystemUpdateListener {
+                override fun onParticleSystemEnded(system: PartySystem, activeSystems: Int) {
+                    if (activeSystems == 0) {
+                        confettiState.clear()
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun StatsStrip(streak: Int, weeklyCount: Int, lastLoggedTs: Timestamp?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(
+                text = stringResource(R.string.streak_count, streak),
+                style = MaterialTheme.typography.titleMedium,
+                color = LightCoralDark
+            )
+            Text(
+                text = stringResource(R.string.this_week_count, weeklyCount),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        lastLoggedTs?.let {
+            Text(
+                text = stringResource(R.string.last_logged, relativeTime(it.toDate())),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -321,22 +420,49 @@ fun BristolChip(id: Int, emoji: String, label: String, isSelected: Boolean, onCl
 
 @Composable
 fun PoopColorPicker(selected: String?, onSelect: (String?) -> Unit) {
-    val colors = listOf("brown" to "🟤 Brown", "yellow" to "🟡 Yellow", "green" to "🟢 Green", "black" to "⚫ Black", "red" to "🔴 Red")
-    Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), 
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        colors.forEach { (key, label) ->
-            val isSelected = selected == key
-            Surface(
-                onClick = { onSelect(if (isSelected) null else key) },
-                shape = CircleShape,
-                color = if (isSelected) LightCoral else MaterialTheme.colorScheme.surface,
-                border = if (isSelected) null else BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Text(label, modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface)
+    val colors = listOf(
+        "brown" to "🟤 Brown",
+        "yellow" to "🟡 Yellow",
+        "green" to "🟢 Green",
+        "black" to "⚫ Black",
+        "red" to "🔴 Red"
+    )
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            colors.take(3).forEach { (key, label) ->
+                PoopColorChip(key, label, selected == key) { onSelect(if (selected == key) null else key) }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            colors.drop(3).forEach { (key, label) ->
+                PoopColorChip(key, label, selected == key) { onSelect(if (selected == key) null else key) }
+            }
+        }
+    }
+}
+
+@Composable
+fun PoopColorChip(key: String, label: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = if (isSelected) LightCoral else MaterialTheme.colorScheme.surface,
+        border = if (isSelected) null else BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -462,9 +588,9 @@ private fun relativeTime(date: Date?): String {
     val diffMinutes = (System.currentTimeMillis() - date.time) / 60000
     return when {
         diffMinutes < 1 -> stringResource(R.string.just_now)
-        diffMinutes < 60 -> stringResource(R.string.minutes_ago, diffMinutes)
-        diffMinutes < 60 * 24 -> stringResource(R.string.hours_ago, diffMinutes / 60)
-        else -> stringResource(R.string.days_ago, diffMinutes / (60 * 24))
+        diffMinutes < 60 -> stringResource(R.string.minutes_ago, diffMinutes.toInt())
+        diffMinutes < 60 * 24 -> stringResource(R.string.hours_ago, (diffMinutes / 60).toInt())
+        else -> stringResource(R.string.days_ago, (diffMinutes / (60 * 24)).toInt())
     }
 }
 

@@ -41,9 +41,9 @@
     <string name="join_by_code">Join by code</string>
 
     <!-- Feed Screen -->
-    <string name="type_optional">Type (optional)</string>
-    <string name="color_optional">Color (optional)</string>
-    <string name="mood_optional">Mood (optional)</string>
+    <string name="type_optional">Type</string>
+    <string name="color_optional">Color</string>
+    <string name="mood_optional">Mood</string>
     <string name="logged_success">Logged! 💩</string>
     <string name="sync_moment">🎉 Sync moment! You two logged close together 🎉</string>
     <string name="recent_activity">Recent activity</string>
@@ -57,6 +57,9 @@
     <string name="log_poop">Log 💩</string>
     <string name="one_tap_log">One-tap log 💩</string>
     <string name="share_recap">Share weekly recap</string>
+    <string name="last_logged">last logged %1$s</string>
+    <string name="streak_count">%1$d 🔥</string>
+    <string name="this_week_count">%1$d this week</string>
     <string name="no_pairing">No pairing found — create or join one first.</string>
 
     <!-- Settings Screen -->

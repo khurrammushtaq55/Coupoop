@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
 fun CoupoopApp() {
     // --- DEBUG BYPASS ---
     // Set this to true to skip Login and Pairing screens during development.
-    val isDebugBypass = true
+    val isDebugBypass = false
     val debugUserId = "DEBUG_USER_123"
     val debugPairingId = "DEBUG_PAIR_456"
     // --------------------
