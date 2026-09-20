@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
         // Attempt background quick log if user is signed in and has a pairing
         val user = AuthManager.currentUser()
         if (user != null) {
+            val logNote = getString(R.string.widget_log_note)
             PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
                 if (pairingId != null) {
                     LoggingManager.addLog(
@@ -66,8 +67,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun CoupoopApp() {
-    // Observe auth state reactively — reading AuthManager.currentUser() once here
-    // would never notice a sign-in or sign-out happening afterwards.
+    // --- DEBUG BYPASS ---
+    // Set this to true to skip Login and Pairing screens during development.
+    val isDebugBypass = true
+    val debugUserId = "DEBUG_USER_123"
+    val debugPairingId = "DEBUG_PAIR_456"
+    // --------------------
+
     var currentUser by remember { mutableStateOf(AuthManager.currentUser()) }
 
     DisposableEffect(Unit) {
@@ -83,10 +89,15 @@ fun CoupoopApp() {
             Surface(
                 modifier = androidx.compose.ui.Modifier.padding(innerPadding)
             ) {
-                if (currentUser == null) {
+                if (isDebugBypass) {
+                    FeedScreen(
+                        onSignOut = { /* no-op in bypass */ },
+                        forcedUserId = debugUserId,
+                        forcedPairingId = debugPairingId
+                    )
+                } else if (currentUser == null) {
                     LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
                 } else {
-                    // Show feed; if no pairing exists the FeedScreen will prompt to create/join
                     FeedScreen(onSignOut = { AuthManager.signOut() })
                 }
             }

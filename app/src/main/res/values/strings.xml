@@ -1,10 +1,85 @@
 <resources>
-    <string name="app_name">Sync</string>
-    <string name="quick_sign_in">Quick sign-in — start syncing 💨</string>
-    <string name="create_pairing">Create pairing / Invite partner</string>
+    <string name="app_name">coupoop</string>
+
+    <!-- Login Screen -->
+    <string name="tagline">The playful way to keep track together</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="fcm_reg_failed">Signed in (FCM reg failed: %1$s)</string>
+    <string name="sign_in_success">You’re in — ready to sync! 🎉</string>
+    <string name="sign_in_failed">Sign in failed — try again</string>
+    <string name="quick_sign_in">Quick anonymous sign-in — start syncing 💨</string>
+    <string name="or_divider">— or —</string>
+    <string name="google_authenticating">Authenticating with Google…</string>
+    <string name="google_link_success">Google account linked successfully! 🎉</string>
+    <string name="firebase_auth_failed">Firebase authentication failed</string>
+    <string name="google_token_error">Google login error: Could not retrieve ID Token.</string>
+    <string name="google_login_failed">Google login canceled or failed: %1$s</string>
+    <string name="opening_google_sign_in">Opening Google Sign-In…</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+
+    <!-- Pairing Screen -->
+    <string name="sign_in_first">Please sign in first</string>
+    <string name="find_buddy">Find your poop buddy</string>
+    <string name="invite_or_join">Invite your partner or join with their code</string>
+    <string name="tab_invite">💌 Invite</string>
+    <string name="tab_join">🔑 Join</string>
+    <string name="creating_pairing">Creating pairing…</string>
+    <string name="failed_create_pairing">Failed to create pairing</string>
+    <string name="joining_pairing">Joining pairing…</string>
+    <string name="joined_pairing">Joined pairing!</string>
+    <string name="failed_join">Failed to join</string>
+    <string name="invite_helper">Generate a one-tap invite and send it to your partner.</string>
+    <string name="create_invite_code">Create invite code</string>
+    <string name="continue_to_coupoop">Continue to coupoop</string>
+    <string name="your_invite_code">YOUR INVITE CODE</string>
+    <string name="copy">Copy</string>
+    <string name="share">Share</string>
+    <string name="share_text">Join me on coupoop! Use my code: %1$s</string>
+    <string name="waiting_for_partner">Waiting for your partner to join…</string>
+    <string name="join_helper">Got a code from your partner? Enter it below.</string>
+    <string name="enter_invite_code">Enter invite code</string>
     <string name="join_by_code">Join by code</string>
-    <string name="no_pairing">No pairing found — create or join one first.</string>
+
+    <!-- Feed Screen -->
+    <string name="type_optional">Type (optional)</string>
+    <string name="color_optional">Color (optional)</string>
+    <string name="mood_optional">Mood (optional)</string>
+    <string name="logged_success">Logged! 💩</string>
+    <string name="sync_moment">🎉 Sync moment! You two logged close together 🎉</string>
+    <string name="recent_activity">Recent activity</string>
+    <string name="no_logs_yet">No logs yet — tap ‘Log 💩’ to start</string>
+    <string name="just_now">just now</string>
+    <string name="minutes_ago">%1$dm ago</string>
+    <string name="hours_ago">%1$dh ago</string>
+    <string name="days_ago">%1$dd ago</string>
+    <string name="someone">Someone</string>
+    <string name="bristol_type">Type %1$d</string>
+    <string name="log_poop">Log 💩</string>
     <string name="one_tap_log">One-tap log 💩</string>
     <string name="share_recap">Share weekly recap</string>
+    <string name="no_pairing">No pairing found — create or join one first.</string>
+
+    <!-- Settings Screen -->
+    <string name="back">← Back</string>
+    <string name="settings">Settings</string>
+    <string name="sign_out">Sign out</string>
+    <string name="unmute_notifications">Unmute notifications</string>
+    <string name="mute_notifications">Mute notifications</string>
+    <string name="applies_to_pairing">Applies to this pairing only</string>
+    <string name="leave_pairing">Leave pairing</string>
+    <string name="leaving_pairing">Leaving pairing…</string>
+    <string name="delete_account">Delete my account</string>
+    <string name="delete_account_title">Delete account?</string>
+    <string name="delete_account_confirm">This permanently deletes your account and removes you from your pairing. This can’t be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="deleting_account">Deleting account…</string>
+    <string name="failed_update_mute">Failed to update notification setting</string>
+    <string name="failed_leave_pairing">Failed to leave pairing</string>
+    <string name="failed_delete_account">Failed to delete account</string>
+
+    <!-- Widget -->
     <string name="widget_description">One-tap poop log shortcut for your home screen</string>
+    <string name="tap_to_log">Tap to log</string>
+    <string name="widget_log_note">Widget quick-log</string>
 </resources>

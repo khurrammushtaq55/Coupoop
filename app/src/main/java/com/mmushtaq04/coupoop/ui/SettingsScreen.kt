@@ -7,12 +7,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mmushtaq04.coupoop.AccountManager
 import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.NotificationPrefsManager
 import com.mmushtaq04.coupoop.PairingManager
+import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.Danger
 import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
@@ -29,6 +31,12 @@ fun SettingsScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var working by remember { mutableStateOf(false) }
     var muted by remember { mutableStateOf(false) }
+    
+    val leavingPairingMsg = stringResource(R.string.leaving_pairing)
+    val deletingAccountMsg = stringResource(R.string.deleting_account)
+    val failMuteMsg = stringResource(R.string.failed_update_mute)
+    val failLeaveMsg = stringResource(R.string.failed_leave_pairing)
+    val failDeleteMsg = stringResource(R.string.failed_delete_account)
 
     LaunchedEffect(pairingId) {
         val user = AuthManager.currentUser()
@@ -44,11 +52,11 @@ fun SettingsScreen(
         .padding(20.dp)) {
         
         TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) {
-            Text("← Back", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.back), style = MaterialTheme.typography.labelLarge)
         }
 
         Text(
-            "Settings", 
+            stringResource(R.string.settings), 
             style = MaterialTheme.typography.headlineMedium, 
             color = LightCoralDark,
             modifier = Modifier.padding(top = 16.dp)
@@ -61,7 +69,7 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = CircleShape
         ) {
-            Text("Sign out", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.sign_out), style = MaterialTheme.typography.labelLarge)
         }
 
         if (pairingId != null) {
@@ -74,17 +82,20 @@ fun SettingsScreen(
                         if (success) {
                             muted = newValue
                         } else {
-                            status = message ?: "Failed to update notification setting"
+                            status = message ?: failMuteMsg
                         }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = CircleShape
             ) {
-                Text(if (muted) "Unmute notifications" else "Mute notifications", style = MaterialTheme.typography.labelLarge)
+                Text(
+                    if (muted) stringResource(R.string.unmute_notifications) else stringResource(R.string.mute_notifications), 
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
             Text(
-                "Applies to this pairing only",
+                stringResource(R.string.applies_to_pairing),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
@@ -95,20 +106,20 @@ fun SettingsScreen(
                 onClick = {
                     val user = AuthManager.currentUser() ?: return@OutlinedButton
                     working = true
-                    status = "Leaving pairing..."
+                    status = leavingPairingMsg
                     PairingManager.leavePairing(pairingId, user.uid) { success, message ->
                         working = false
                         if (success) {
                             onLeftPairing()
                         } else {
-                            status = message ?: "Failed to leave pairing"
+                            status = message ?: failLeaveMsg
                         }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = CircleShape
             ) {
-                Text("Leave pairing", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.leave_pairing), style = MaterialTheme.typography.labelLarge)
             }
         }
 
@@ -119,7 +130,7 @@ fun SettingsScreen(
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(containerColor = Danger)
         ) {
-            Text("Delete my account", style = MaterialTheme.typography.labelLarge, color = Color.White)
+            Text(stringResource(R.string.delete_account), style = MaterialTheme.typography.labelLarge, color = Color.White)
         }
 
         status?.let { 
@@ -135,28 +146,28 @@ fun SettingsScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { if (!working) showDeleteConfirm = false },
-            title = { Text("Delete account?") },
-            text = { Text("This permanently deletes your account and removes you from your pairing. This can't be undone.") },
+            title = { Text(stringResource(R.string.delete_account_title)) },
+            text = { Text(stringResource(R.string.delete_account_confirm)) },
             confirmButton = {
                 TextButton(onClick = {
                     working = true
-                    status = "Deleting account..."
+                    status = deletingAccountMsg
                     AccountManager.deleteAccount { success, message ->
                         working = false
                         showDeleteConfirm = false
                         if (success) {
                             onAccountDeleted()
                         } else {
-                            status = message ?: "Failed to delete account"
+                            status = message ?: failDeleteMsg
                         }
                     }
                 }) {
-                    Text("Delete", color = Danger)
+                    Text(stringResource(R.string.delete), color = Danger)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
             shape = RoundedCornerShape(20.dp),
