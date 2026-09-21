@@ -1,125 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
 
-    <!-- Base brown background -->
+    <!-- Full Pink Background -->
+    <path android:pathData="M0,0h1024v1024h-1024z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0" android:startY="0" android:endX="1024" android:endY="1024" android:type="linear">
+                <item android:offset="0" android:color="#D08F2A" />
+                <item android:offset="1" android:color="#C1841D" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Background Circle -->
     <path
-        android:fillColor="#B6875A"
-        android:pathData="M0,0h108v108h-108z" />
-
-    <!-- Texture elements, scaled from 100x100 to 108x108 -->
-    <group
-        android:scaleX="1.08"
-        android:scaleY="1.08">
-
-        <!-- Lighter brown patches -->
-        <path
-            android:fillAlpha="0.6"
-            android:fillColor="#C99A6E"
-            android:pathData="M 15 20 Q 25 15 35 25 T 55 20 T 80 30 Q 85 45 75 55 T 85 75 Q 75 90 60 80 T 30 85 Q 15 80 20 65 T 15 40 Z" />
-        <path
-            android:fillAlpha="0.5"
-            android:fillColor="#C99A6E"
-            android:pathData="M 10 50 Q 30 40 40 60 T 70 50 T 90 60 Q 85 80 60 75 T 30 90 Q 15 85 10 70 Z" />
-        <path
-            android:fillAlpha="0.7"
-            android:fillColor="#C99A6E"
-            android:pathData="M 40 10 Q 60 15 65 30 T 80 40 Q 75 20 60 10 Z" />
-
-        <!-- Dark brown speckles and rocks -->
-        <!-- Top area -->
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M45,12.5a2.5,2.5 0 1,0 0,5a2.5,2.5 0 1,0 0,-5z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M52,16.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M70,20.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M75,23a2,2 0 1,0 0,4a2,2 0 1,0 0,-4z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M 60 20 Q 62 18 64 20 Q 63 22 60 22 Z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M 80 35 Q 83 33 85 36 Q 82 38 80 35 Z" />
-
-        <!-- Middle area -->
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M18,43a2,2 0 1,0 0,4a2,2 0 1,0 0,-4z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M22,48.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M15,54a1,1 0 1,0 0,2a1,1 0 1,0 0,-2z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M 18 58 Q 20 56 22 59 Q 19 61 18 58 Z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M75,48a2,2 0 1,0 0,4a2,2 0 1,0 0,-4z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M80,53.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M 85 45 Q 87 44 88 46 Q 86 48 85 45 Z" />
-
-        <!-- Bottom area -->
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M30,78a2,2 0 1,0 0,4a2,2 0 1,0 0,-4z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M35,83.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M45,80a2,2 0 1,0 0,4a2,2 0 1,0 0,-4z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M50,84a1,1 0 1,0 0,2a1,1 0 1,0 0,-2z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M 40 80 Q 43 78 45 81 Q 42 83 40 80 Z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M 50 78 Q 52 76 54 79 Q 52 81 50 78 Z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M70,78.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M75,83a2,2 0 1,0 0,4a2,2 0 1,0 0,-4z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M 65 75 Q 68 73 70 76 Q 67 78 65 75 Z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M60,81a1,1 0 1,0 0,2a1,1 0 1,0 0,-2z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M55,86.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-
-        <!-- Additional scattered spots -->
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M28,34a1,1 0 1,0 0,2a1,1 0 1,0 0,-2z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M32,26.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M65,64a1,1 0 1,0 0,2a1,1 0 1,0 0,-2z" />
-        <path
-            android:fillColor="#54341D"
-            android:pathData="M70,66.5a1.5,1.5 0 1,0 0,3a1.5,1.5 0 1,0 0,-3z" />
-    </group>
+        android:fillColor="#FFF7F4"
+        android:fillAlpha="0.68"
+        android:pathData="M512,122 A390,390 0 1,1 512,902 A390,390 0 1,1 512,122 Z" />
 </vector>
