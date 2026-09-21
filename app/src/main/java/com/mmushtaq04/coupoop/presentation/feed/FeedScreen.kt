@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop.ui
+package com.mmushtaq04.coupoop.presentation.feed
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -34,11 +34,18 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
-import com.mmushtaq04.coupoop.AuthManager
-import com.mmushtaq04.coupoop.LoggingManager
-import com.mmushtaq04.coupoop.PairingManager
 import com.mmushtaq04.coupoop.R
-import com.mmushtaq04.coupoop.RatingManager
+import com.mmushtaq04.coupoop.data.firebase.AuthManager
+import com.mmushtaq04.coupoop.data.firebase.LoggingManager
+import com.mmushtaq04.coupoop.data.firebase.PairingManager
+import com.mmushtaq04.coupoop.data.review.RatingManager
+import com.mmushtaq04.coupoop.presentation.activity.ActivityScreen
+import com.mmushtaq04.coupoop.presentation.auth.NameEntryScreen
+import com.mmushtaq04.coupoop.presentation.common.CoupoopTopBar
+import com.mmushtaq04.coupoop.presentation.common.SuccessOverlay
+import com.mmushtaq04.coupoop.presentation.log.LogScreen
+import com.mmushtaq04.coupoop.presentation.pairing.PairingScreen
+import com.mmushtaq04.coupoop.presentation.settings.SettingsScreen
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightChipBg
 import com.mmushtaq04.coupoop.ui.theme.LightCoral
@@ -54,14 +61,17 @@ fun FeedScreen(
     onSignOut: () -> Unit = {},
     forcedUserId: String? = null,
     forcedPairingId: String? = null,
+    shouldPromptForUsername: Boolean = false,
+    onUsernamePromptHandled: () -> Unit = {},
     onThemeChanged: (Int) -> Unit = {}
 ) {
     val user = if (LocalInspectionMode.current) null else AuthManager.currentUser()
     val userId = forcedUserId ?: user?.uid
 
     val isBypass = LocalInspectionMode.current || forcedUserId != null
-    val usernameChecked = remember { mutableStateOf(isBypass) }
-    val needsUsername = remember { mutableStateOf(false) }
+    val shouldCheckUsername = !isBypass && shouldPromptForUsername
+    val usernameChecked = remember(shouldCheckUsername) { mutableStateOf(!shouldCheckUsername) }
+    val needsUsername = remember(shouldCheckUsername) { mutableStateOf(false) }
 
     val pairingIdState = remember { mutableStateOf(forcedPairingId) }
     val pairingChecked = remember { mutableStateOf(forcedPairingId != null) }
@@ -175,8 +185,8 @@ fun FeedScreen(
         }
     }
 
-    LaunchedEffect(userId) {
-        if (isBypass || userId == null) return@LaunchedEffect
+    LaunchedEffect(userId, shouldCheckUsername) {
+        if (!shouldCheckUsername || userId == null) return@LaunchedEffect
         FirebaseFirestore.getInstance("coupoop").collection("users").document(userId).get()
             .addOnSuccessListener { doc ->
                 needsUsername.value = doc.getBoolean("usernameSet") != true
@@ -198,7 +208,10 @@ fun FeedScreen(
     if (userId != null && needsUsername.value) {
         NameEntryScreen(
             initialName = user?.displayName ?: "",
-            onNameSet = { needsUsername.value = false }
+            onNameSet = {
+                needsUsername.value = false
+                onUsernamePromptHandled()
+            }
         )
         return
     }
@@ -762,22 +775,6 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
                 }
             }
 
-            // Photo Logic Phase 2
-            /*
-            val photoUrl = log["photoUrl"] as? String
-            if (!photoUrl.isNullOrEmpty()) {
-                AsyncImage(
-                    model = photoUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(top = 12.dp)
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
-            */
 
             val logId = log["id"] as? String
             val reactions = (log["reactions"] as? Map<*, *>) ?: emptyMap<String, String>()

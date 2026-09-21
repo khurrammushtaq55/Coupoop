@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop.ui
+package com.mmushtaq04.coupoop.presentation.feed
 
 import android.content.Context
 import android.content.Intent

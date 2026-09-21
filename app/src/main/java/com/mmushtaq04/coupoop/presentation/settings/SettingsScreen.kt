@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop.ui
+package com.mmushtaq04.coupoop.presentation.settings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -14,12 +14,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mmushtaq04.coupoop.AccountManager
-import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.BuildConfig
-import com.mmushtaq04.coupoop.NotificationPrefsManager
-import com.mmushtaq04.coupoop.PairingManager
 import com.mmushtaq04.coupoop.R
+import com.mmushtaq04.coupoop.data.account.AccountManager
+import com.mmushtaq04.coupoop.data.firebase.AuthManager
+import com.mmushtaq04.coupoop.data.firebase.NotificationPrefsManager
+import com.mmushtaq04.coupoop.data.firebase.PairingManager
+import com.mmushtaq04.coupoop.presentation.common.CoupoopTopBar
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.Danger
 import com.mmushtaq04.coupoop.ui.theme.LightChipBg

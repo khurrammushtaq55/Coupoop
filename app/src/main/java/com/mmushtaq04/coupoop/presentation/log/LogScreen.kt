@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop.ui
+package com.mmushtaq04.coupoop.presentation.log
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,9 +28,19 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.google.firebase.Timestamp
-import com.mmushtaq04.coupoop.LoggingManager
 import com.mmushtaq04.coupoop.R
-import com.mmushtaq04.coupoop.StorageManager
+import com.mmushtaq04.coupoop.data.firebase.LoggingManager
+import com.mmushtaq04.coupoop.data.storage.StorageManager
+import com.mmushtaq04.coupoop.presentation.feed.BristolTypePicker
+import com.mmushtaq04.coupoop.presentation.feed.CelebrationBanner
+import com.mmushtaq04.coupoop.presentation.feed.ConditionsPicker
+import com.mmushtaq04.coupoop.presentation.feed.MoodPicker
+import com.mmushtaq04.coupoop.presentation.feed.PoopColorPicker
+import com.mmushtaq04.coupoop.presentation.feed.PoopFactCard
+import com.mmushtaq04.coupoop.presentation.feed.RecapShare
+import com.mmushtaq04.coupoop.presentation.feed.SectionLabel
+import com.mmushtaq04.coupoop.presentation.feed.StatsStrip
+import com.mmushtaq04.coupoop.presentation.feed.VolumePicker
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import java.io.File
 import java.util.UUID
@@ -71,12 +81,12 @@ fun LogScreen(
     )
 //    val uploadingPhotoMsg = stringResource(R.string.uploading_photo)
 
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) selectedImageUri.value = uri
-    }
-
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> }
-    var tempImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+//    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+//        if (uri != null) selectedImageUri.value = uri
+//    }
+//
+//    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success -> }
+//    var tempImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
     val facts = remember {
         listOf(
@@ -234,7 +244,7 @@ fun LogScreen(
 
             Surface(
                 onClick = {
-                    pairingId?.let { com.mmushtaq04.coupoop.ui.RecapShare.shareWeeklyRecap(ctx, it) }
+                    pairingId?.let { RecapShare.shareWeeklyRecap(ctx, it) }
                 },
                 shape = CircleShape,
                 color = LightChipBg,
@@ -243,16 +253,6 @@ fun LogScreen(
                 Box(modifier = Modifier.padding(12.dp), contentAlignment = Alignment.Center) {
                     Text(stringResource(R.string.share_recap), style = MaterialTheme.typography.labelLarge, color = LightCoralDark)
                 }
-            }
-
-            status.value?.let {
-                Text(
-                    it,
-                    modifier = Modifier.padding(top = 12.dp),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LightCoralDark
-                )
             }
             
             Spacer(modifier = Modifier.height(32.dp))

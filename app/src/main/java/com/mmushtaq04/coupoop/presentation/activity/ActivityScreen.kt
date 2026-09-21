@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop.ui
+package com.mmushtaq04.coupoop.presentation.activity
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +10,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mmushtaq04.coupoop.R
+import com.mmushtaq04.coupoop.presentation.feed.EmptyState
+import com.mmushtaq04.coupoop.presentation.feed.LogCard
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 
 @Composable

@@ -6,17 +6,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.google.firebase.auth.FirebaseAuth
-import com.mmushtaq04.coupoop.ui.LoginScreen
-import com.mmushtaq04.coupoop.ui.FeedScreen
-import androidx.compose.runtime.mutableIntStateOf
+import com.mmushtaq04.coupoop.data.firebase.AuthManager
+import com.mmushtaq04.coupoop.data.firebase.LoggingManager
+import com.mmushtaq04.coupoop.data.firebase.PairingManager
+import com.mmushtaq04.coupoop.presentation.CoupoopApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +36,7 @@ class MainActivity : ComponentActivity() {
         val quickLog = intent?.getBooleanExtra("quick_log", false) ?: false
         if (!quickLog) return
 
-        // Attempt background quick log if user is signed in and has a pairing
+        // Attempt background quick log if user is signed in and has a pairing.
         val user = AuthManager.currentUser()
         if (user != null) {
             PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
@@ -61,32 +54,6 @@ class MainActivity : ComponentActivity() {
         }
 
         // Clear the extra so navigating away and back (e.g. via recents) doesn't re-fire it.
-        intent.removeExtra("quick_log")
-    }
-}
-
-@Composable
-fun CoupoopApp() {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    var themeMode by remember { mutableIntStateOf(PrefsManager.getThemeMode(context)) }
-    var currentUser by remember { mutableStateOf(AuthManager.currentUser()) }
-
-    DisposableEffect(Unit) {
-        val listener = FirebaseAuth.AuthStateListener { auth ->
-            currentUser = auth.currentUser
-        }
-        AuthManager.addAuthStateListener(listener)
-        onDispose { AuthManager.removeAuthStateListener(listener) }
-    }
-
-    CoupoopTheme(themeMode = themeMode) {
-        if (currentUser == null) {
-            LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
-        } else {
-            FeedScreen(
-                onSignOut = { AuthManager.signOut() },
-                onThemeChanged = { themeMode = it }
-            )
-        }
+        intent?.removeExtra("quick_log")
     }
 }

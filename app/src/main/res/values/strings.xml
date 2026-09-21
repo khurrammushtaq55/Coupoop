@@ -7,7 +7,7 @@
     <string name="fcm_reg_failed">Signed in (FCM reg failed: %1$s)</string>
     <string name="sign_in_success">You’re in — ready to sync! 🎉</string>
     <string name="sign_in_failed">Sign in failed — try again</string>
-    <string name="quick_sign_in">Quick anonymous sign-in — start syncing 💨</string>
+    <string name="quick_sign_in">Quick sign-in</string>
     <string name="or_divider">— or —</string>
     <string name="google_authenticating">Authenticating with Google…</string>
     <string name="google_link_success">Google account linked successfully! 🎉</string>

@@ -1,8 +1,9 @@
-package com.mmushtaq04.coupoop
+package com.mmushtaq04.coupoop.data.account
 
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mmushtaq04.coupoop.data.firebase.AuthManager
 
 /**
  * Implements the account-deletion flow privacy_policy.md already promises

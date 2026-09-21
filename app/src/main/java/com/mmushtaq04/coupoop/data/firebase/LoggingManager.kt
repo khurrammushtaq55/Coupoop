@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop
+package com.mmushtaq04.coupoop.data.firebase
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore

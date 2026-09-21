@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop
+package com.mmushtaq04.coupoop.data.review
 
 import android.app.Activity
 import android.content.Context

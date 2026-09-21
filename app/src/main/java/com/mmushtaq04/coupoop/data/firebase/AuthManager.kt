@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop
+package com.mmushtaq04.coupoop.data.firebase
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser

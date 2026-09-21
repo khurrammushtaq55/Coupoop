@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop
+package com.mmushtaq04.coupoop.data.purchase
 
 /**
  * Lightweight purchase manager stub for gating premium features.

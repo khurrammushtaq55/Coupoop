@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop.ui
+package com.mmushtaq04.coupoop.presentation.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,8 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mmushtaq04.coupoop.AuthManager
 import com.mmushtaq04.coupoop.R
+import com.mmushtaq04.coupoop.data.firebase.AuthManager
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
 

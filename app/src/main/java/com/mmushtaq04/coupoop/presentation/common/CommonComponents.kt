@@ -1,4 +1,4 @@
-package com.mmushtaq04.coupoop.ui
+package com.mmushtaq04.coupoop.presentation.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
