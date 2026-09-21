@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.material3.Surface
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -16,12 +16,12 @@ import androidx.compose.runtime.setValue
 import com.google.firebase.auth.FirebaseAuth
 import com.mmushtaq04.coupoop.ui.LoginScreen
 import com.mmushtaq04.coupoop.ui.FeedScreen
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.mutableIntStateOf
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         setContent {
@@ -46,7 +46,6 @@ class MainActivity : ComponentActivity() {
         // Attempt background quick log if user is signed in and has a pairing
         val user = AuthManager.currentUser()
         if (user != null) {
-            val logNote = getString(R.string.widget_log_note)
             PairingManager.getFirstPairingForUser(user.uid) { pairingId ->
                 if (pairingId != null) {
                     LoggingManager.addLog(
@@ -54,7 +53,7 @@ class MainActivity : ComponentActivity() {
                         userId = user.uid,
                         note = "Widget quick-log",
                         displayName = user.displayName
-                    ) { success, _ ->
+                    ) { _, _ ->
                         // no-op; UI will reflect logs when app opens
                     }
                 }
@@ -62,19 +61,12 @@ class MainActivity : ComponentActivity() {
         }
 
         // Clear the extra so navigating away and back (e.g. via recents) doesn't re-fire it.
-        intent?.removeExtra("quick_log")
+        intent.removeExtra("quick_log")
     }
 }
 
 @Composable
 fun CoupoopApp() {
-    // --- DEBUG BYPASS ---
-    // Set this to true to skip Login and Pairing screens during development.
-    val isDebugBypass = false
-    val debugUserId = "DEBUG_USER_123"
-    val debugPairingId = "DEBUG_PAIR_456"
-    // --------------------
-
     val context = androidx.compose.ui.platform.LocalContext.current
     var themeMode by remember { mutableIntStateOf(PrefsManager.getThemeMode(context)) }
     var currentUser by remember { mutableStateOf(AuthManager.currentUser()) }
@@ -88,26 +80,13 @@ fun CoupoopApp() {
     }
 
     CoupoopTheme(themeMode = themeMode) {
-        androidx.compose.material3.Scaffold { innerPadding ->
-            Surface(
-                modifier = androidx.compose.ui.Modifier.padding(innerPadding)
-            ) {
-                if (isDebugBypass) {
-                    FeedScreen(
-                        onSignOut = { /* no-op in bypass */ },
-                        forcedUserId = debugUserId,
-                        forcedPairingId = debugPairingId,
-                        onThemeChanged = { themeMode = it }
-                    )
-                } else if (currentUser == null) {
-                    LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
-                } else {
-                    FeedScreen(
-                        onSignOut = { AuthManager.signOut() },
-                        onThemeChanged = { themeMode = it }
-                    )
-                }
-            }
+        if (currentUser == null) {
+            LoginScreen(onSignedIn = { /* AuthStateListener above updates currentUser */ })
+        } else {
+            FeedScreen(
+                onSignOut = { AuthManager.signOut() },
+                onThemeChanged = { themeMode = it }
+            )
         }
     }
 }

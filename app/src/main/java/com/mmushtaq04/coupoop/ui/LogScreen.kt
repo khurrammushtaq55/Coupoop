@@ -2,7 +2,6 @@ package com.mmushtaq04.coupoop.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,9 +32,6 @@ import com.mmushtaq04.coupoop.LoggingManager
 import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.StorageManager
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
-import nl.dionsegijn.konfetti.core.Party
-import nl.dionsegijn.konfetti.core.Position
-import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -43,6 +39,7 @@ import com.mmushtaq04.coupoop.ui.theme.LightChipBg
 import com.mmushtaq04.coupoop.ui.theme.LightCoral
 import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
 import com.google.firebase.auth.FirebaseUser
+import android.util.Log
 
 @Composable
 fun LogScreen(
@@ -53,7 +50,7 @@ fun LogScreen(
     weeklyCount: Int,
     lastLoggedTs: Timestamp?,
     celebrationVisible: Boolean,
-    onConfettiBurst: (List<Party>) -> Unit,
+    onSuccess: (String) -> Unit,
     status: MutableState<String?>
 ) {
     val selectedBristol = remember { mutableStateOf<Int?>(null) }
@@ -73,7 +70,6 @@ fun LogScreen(
         R.string.logged_success_6
     )
     val uploadingPhotoMsg = stringResource(R.string.uploading_photo)
-    val loggedSuccessMsg = stringResource(R.string.logged_success_1)
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) selectedImageUri.value = uri
@@ -151,6 +147,8 @@ fun LogScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Photo Logic Phase 2
+            /*
             SectionLabel(stringResource(R.string.picture_optional))
             PhotoPicker(
                 selectedUri = selectedImageUri.value,
@@ -168,6 +166,7 @@ fun LogScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
+            */
 
             Button(
                 onClick = {
@@ -184,7 +183,7 @@ fun LogScreen(
                             volume = selectedVolume.value,
                             conditions = selectedConditions.value.toList().ifEmpty { null },
                             photoUrl = photoUrl,
-                            displayName = user?.displayName ?: "Debug User"
+                            displayName = user?.displayName
                         ) { success, msg ->
                             if (success) {
                                 selectedBristol.value = null
@@ -193,36 +192,37 @@ fun LogScreen(
                                 selectedVolume.value = null
                                 selectedConditions.value = emptySet()
                                 selectedImageUri.value = null
-                                status.value = ctx.getString(successMessages.random())
-
-                                onConfettiBurst(
-                                    listOf(
-                                        Party(
-                                            speed = 0f,
-                                            maxSpeed = 30f,
-                                            damping = 0.9f,
-                                            spread = 360,
-                                            colors = listOf(0xFFB94A31.toInt(), 0xFFFF6B4A.toInt(), 0xFF2AB6A6.toInt()),
-                                            position = Position.Relative(0.5, 0.7),
-                                            emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(30)
-                                        )
-                                    )
-                                )
+                                val successMsg = ctx.getString(successMessages.random())
+                                status.value = successMsg
+                                Log.d("Coupoop", "Log added successfully: $successMsg")
+                                onSuccess(successMsg)
                             } else {
+                                Log.e("Coupoop", "Failed to add log: $msg")
                                 status.value = msg
                             }
                         }
                     }
 
+                    // Photo Logic Phase 2
+                    /*
                     if (selectedImageUri.value != null) {
+                        Log.d("Coupoop", "Image selected, starting upload")
                         status.value = uploadingPhotoMsg
                         StorageManager.uploadPhoto(selectedImageUri.value!!) { ok, url ->
-                            if (ok) onComplete(url)
-                            else status.value = url
+                            if (ok) {
+                                Log.d("Coupoop", "Image uploaded: $url")
+                                onComplete(url)
+                            } else {
+                                Log.e("Coupoop", "Image upload failed: $url")
+                                status.value = url
+                            }
                         }
                     } else {
+                        Log.d("Coupoop", "No image, adding log directly")
                         onComplete(null)
                     }
+                    */
+                    onComplete(null)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = CircleShape
@@ -234,7 +234,7 @@ fun LogScreen(
 
             Surface(
                 onClick = {
-                    pairingId?.let { RecapShare.shareWeeklyRecap(ctx, it) }
+                    pairingId?.let { com.mmushtaq04.coupoop.ui.RecapShare.shareWeeklyRecap(ctx, it) }
                 },
                 shape = CircleShape,
                 color = LightChipBg,

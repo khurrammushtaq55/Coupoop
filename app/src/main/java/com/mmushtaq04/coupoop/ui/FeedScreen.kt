@@ -1,18 +1,12 @@
 package com.mmushtaq04.coupoop.ui
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,22 +39,15 @@ import com.mmushtaq04.coupoop.LoggingManager
 import com.mmushtaq04.coupoop.PairingManager
 import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.RatingManager
-import com.mmushtaq04.coupoop.StorageManager
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightChipBg
 import com.mmushtaq04.coupoop.ui.theme.LightCoral
 import com.mmushtaq04.coupoop.ui.theme.LightCoralDark
-import nl.dionsegijn.konfetti.compose.KonfettiView
-import nl.dionsegijn.konfetti.compose.OnParticleSystemUpdateListener
-import nl.dionsegijn.konfetti.core.Party
-import nl.dionsegijn.konfetti.core.Position
-import nl.dionsegijn.konfetti.core.emitter.Emitter
-import nl.dionsegijn.konfetti.core.PartySystem
 import java.io.File
 import java.util.Date
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import kotlin.to
+import android.util.Log
 
 @Composable
 fun FeedScreen(
@@ -97,7 +84,8 @@ fun FeedScreen(
     val currentStreak = remember { mutableIntStateOf(0) }
     val weeklyCount = remember { mutableIntStateOf(0) }
 
-    val confettiState = remember { mutableStateListOf<Party>() }
+    val showSuccessOverlay = remember { mutableStateOf(false) }
+    val successOverlayMessage = remember { mutableStateOf("") }
     
     val ctx = LocalContext.current
 
@@ -108,12 +96,9 @@ fun FeedScreen(
         var streakRegistration: ListenerRegistration? = null
 
         if (forcedPairingId != null) {
-            // Bypass mode: use the forced pairing ID immediately
             logsRegistration = LoggingManager.listenForLogs(forcedPairingId) { items ->
                 logs.clear()
                 logs.addAll(items)
-
-                // Calculate weekly count locally from the logs we already have
                 val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
                 weeklyCount.intValue = items.count {
                     (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo
@@ -128,13 +113,12 @@ fun FeedScreen(
                     logsRegistration = LoggingManager.listenForLogs(pairingId) { items ->
                         logs.clear()
                         logs.addAll(items)
-
-                        // Calculate weekly count locally
                         val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
                         weeklyCount.intValue = items.count {
                             (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo
                         }
                     }
+                    var lastCelebrationId: String? = null
                     celebrationsRegistration = FirebaseFirestore.getInstance("coupoop")
                         .collection("pairings").document(pairingId)
                         .collection("celebrations")
@@ -142,7 +126,17 @@ fun FeedScreen(
                         .limit(1)
                         .addSnapshotListener { snap, err ->
                             if (err != null || snap == null) return@addSnapshotListener
-                            if (!snap.isEmpty) { celebration.value = true }
+                            val doc = snap.documents.firstOrNull() ?: return@addSnapshotListener
+                            
+                            val isFirstRun = lastCelebrationId == null
+                            if (doc.id != lastCelebrationId) {
+                                lastCelebrationId = doc.id
+                                if (!isFirstRun) {
+                                    celebration.value = true
+                                    successOverlayMessage.value = ctx.getString(R.string.sync_moment)
+                                    showSuccessOverlay.value = true
+                                }
+                            }
                         }
 
                     streakRegistration = FirebaseFirestore.getInstance("coupoop")
@@ -167,6 +161,13 @@ fun FeedScreen(
             RatingManager.onCelebration(ctx)
             kotlinx.coroutines.delay(3000)
             celebration.value = false
+        }
+    }
+
+    LaunchedEffect(showSuccessOverlay.value) {
+        if (showSuccessOverlay.value) {
+            kotlinx.coroutines.delay(2500)
+            showSuccessOverlay.value = false
         }
     }
 
@@ -202,75 +203,72 @@ fun FeedScreen(
 
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    Scaffold(
-        topBar = {
-            CoupoopTopBar(
-                title = stringResource(R.string.app_name),
-                onActionClick = { showSettings.value = true }
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp
-            ) {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Icon(painterResource(R.drawable.ic_poop_fill), contentDescription = null, modifier = Modifier.size(24.dp)) },
-                    label = { Text(stringResource(R.string.log_poop)) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = LightCoral,
-                        selectedTextColor = LightCoral,
-                        indicatorColor = LightChipBg
-                    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                CoupoopTopBar(
+                    title = stringResource(R.string.app_name),
+                    onActionClick = { showSettings.value = true }
                 )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) }, // placeholder icon for activity
-                    label = { Text(stringResource(R.string.recent_activity)) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = LightCoral,
-                        selectedTextColor = LightCoral,
-                        indicatorColor = LightChipBg
+            },
+            bottomBar = {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ) {
+                    NavigationBarItem(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        icon = { Icon(painterResource(R.drawable.ic_poop_fill), contentDescription = null, modifier = Modifier.size(24.dp)) },
+                        label = { Text(stringResource(R.string.log_poop)) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = LightCoral,
+                            selectedTextColor = LightCoral,
+                            indicatorColor = LightChipBg
+                        )
                     )
-                )
+                    NavigationBarItem(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        label = { Text(stringResource(R.string.recent_activity)) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = LightCoral,
+                            selectedTextColor = LightCoral,
+                            indicatorColor = LightChipBg
+                        )
+                    )
+                }
             }
-        }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            if (selectedTab == 0) {
-                LogScreen(
-                    user = user,
-                    userId = userId,
-                    pairingId = pairingIdState.value,
-                    currentStreak = currentStreak.intValue,
-                    weeklyCount = weeklyCount.intValue,
-                    lastLoggedTs = logs.firstOrNull()?.get("timestamp") as? Timestamp,
-                    celebrationVisible = celebration.value,
-                    onConfettiBurst = { confettiState.addAll(it) },
-                    status = status
-                )
-            } else {
-                ActivityScreen(
-                    logs = logs,
-                    userId = userId,
-                    pairingId = pairingIdState.value
-                )
+        ) { padding ->
+            Box(modifier = Modifier.padding(padding)) {
+                if (selectedTab == 0) {
+                    LogScreen(
+                        user = user,
+                        userId = userId,
+                        pairingId = pairingIdState.value,
+                        currentStreak = currentStreak.intValue,
+                        weeklyCount = weeklyCount.intValue,
+                        lastLoggedTs = logs.firstOrNull()?.get("timestamp") as? Timestamp,
+                        celebrationVisible = celebration.value,
+                        onSuccess = { msg ->
+                            successOverlayMessage.value = msg
+                            showSuccessOverlay.value = true
+                        },
+                        status = status
+                    )
+                } else {
+                    ActivityScreen(
+                        logs = logs,
+                        userId = userId,
+                        pairingId = pairingIdState.value
+                    )
+                }
             }
         }
 
-        KonfettiView(
-            modifier = Modifier.fillMaxSize(),
-            parties = confettiState,
-            updateListener = object : OnParticleSystemUpdateListener {
-                override fun onParticleSystemEnded(system: PartySystem, activeSystems: Int) {
-                    if (activeSystems == 0) {
-                        confettiState.clear()
-                    }
-                }
-            }
+        SuccessOverlay(
+            visible = showSuccessOverlay.value,
+            message = successOverlayMessage.value
         )
     }
 }
@@ -553,7 +551,7 @@ fun RowScope.ConditionChip(iconRes: Int, label: String, isChecked: Boolean, onCl
             // Fixed multi-color icons (not tinted) — Image() rather than Icon()
             // so the vector's own baked-in colors render as drawn, matching how
             // the Google logo is handled in LoginScreen.
-            Image(
+            androidx.compose.foundation.Image(
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
                 modifier = Modifier.size(22.dp)
@@ -722,7 +720,7 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
                 ) {
                     conditions.forEach { key ->
                         conditionIcons[key]?.let { iconRes ->
-                            Image(
+                            androidx.compose.foundation.Image(
                                 painter = painterResource(id = iconRes),
                                 contentDescription = key,
                                 modifier = Modifier.size(18.dp)
@@ -732,6 +730,8 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
                 }
             }
 
+            // Photo Logic Phase 2
+            /*
             val photoUrl = log["photoUrl"] as? String
             if (!photoUrl.isNullOrEmpty()) {
                 AsyncImage(
@@ -745,6 +745,7 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
                     contentScale = ContentScale.Crop
                 )
             }
+            */
 
             val logId = log["id"] as? String
             val reactions = (log["reactions"] as? Map<*, *>) ?: emptyMap<String, String>()

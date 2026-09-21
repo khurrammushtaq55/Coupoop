@@ -207,23 +207,6 @@ fun SettingsScreen(
                 )
             }
 
-            if (BuildConfig.DEBUG) {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    stringResource(R.string.debug_options),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = { /* Debug skip login logic here */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = CircleShape
-                ) {
-                    Text(stringResource(R.string.debug_skip_auth), style = MaterialTheme.typography.labelLarge)
-                }
-            }
-
             status?.let {
                 Text(
                     it,
