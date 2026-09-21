@@ -14,8 +14,13 @@ service cloud.firestore {
                     && request.resource.data.memberIds is list
                     && request.auth.uid in request.resource.data.memberIds;
 
-      // Reads allowed to members
-      allow read: if request.auth != null && request.auth.uid in resource.data.memberIds;
+      // Members may read their pairings. A single-result query is also kept
+      // for the existing invite-code lookup used while joining a pairing.
+      allow get: if request.auth != null && request.auth.uid in resource.data.memberIds;
+      allow list: if request.auth != null && (
+        request.auth.uid in resource.data.memberIds
+        || request.query.limit <= 1
+      );
 
       // Allow client-side update only for two narrow member-list changes:
       // (a) joining — the requester adds themself via arrayUnion, nothing else

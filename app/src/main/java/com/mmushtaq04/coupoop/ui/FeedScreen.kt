@@ -596,60 +596,60 @@ fun PoopFactCard(factText: String) {
 }
 
 
-@Composable
-fun PhotoPicker(
-    selectedUri: android.net.Uri?,
-    onGalleryClick: () -> Unit,
-    onCameraClick: () -> Unit,
-    onRemove: () -> Unit
-) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (selectedUri == null) {
-            Surface(
-                onClick = onCameraClick,
-                modifier = Modifier.size(64.dp),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(stringResource(R.string.take_picture), fontSize = 9.sp, modifier = Modifier.padding(top = 32.dp), textAlign = TextAlign.Center)
-                }
-            }
-            Surface(
-                onClick = onGalleryClick,
-                modifier = Modifier.size(64.dp),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(stringResource(R.string.pick_from_gallery), fontSize = 9.sp, modifier = Modifier.padding(top = 32.dp), textAlign = TextAlign.Center)
-                }
-            }
-        } else {
-            Box(modifier = Modifier.size(80.dp)) {
-                AsyncImage(
-                    model = selectedUri,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                Surface(
-                    onClick = onRemove,
-                    modifier = Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp).size(24.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    shadowElevation = 2.dp
-                ) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = null, modifier = Modifier.padding(4.dp), tint = MaterialTheme.colorScheme.onErrorContainer)
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun PhotoPicker(
+//    selectedUri: android.net.Uri?,
+//    onGalleryClick: () -> Unit,
+//    onCameraClick: () -> Unit,
+//    onRemove: () -> Unit
+//) {
+//    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+//        if (selectedUri == null) {
+//            Surface(
+//                onClick = onCameraClick,
+//                modifier = Modifier.size(64.dp),
+//                shape = RoundedCornerShape(14.dp),
+//                color = MaterialTheme.colorScheme.surface,
+//                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+//            ) {
+//                Box(contentAlignment = Alignment.Center) {
+//                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+//                    Text(stringResource(R.string.take_picture), fontSize = 9.sp, modifier = Modifier.padding(top = 32.dp), textAlign = TextAlign.Center)
+//                }
+//            }
+//            Surface(
+//                onClick = onGalleryClick,
+//                modifier = Modifier.size(64.dp),
+//                shape = RoundedCornerShape(14.dp),
+//                color = MaterialTheme.colorScheme.surface,
+//                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+//            ) {
+//                Box(contentAlignment = Alignment.Center) {
+//                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+//                    Text(stringResource(R.string.pick_from_gallery), fontSize = 9.sp, modifier = Modifier.padding(top = 32.dp), textAlign = TextAlign.Center)
+//                }
+//            }
+//        } else {
+//            Box(modifier = Modifier.size(80.dp)) {
+//                AsyncImage(
+//                    model = selectedUri,
+//                    contentDescription = null,
+//                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)),
+//                    contentScale = ContentScale.Crop
+//                )
+//                Surface(
+//                    onClick = onRemove,
+//                    modifier = Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp).size(24.dp),
+//                    shape = CircleShape,
+//                    color = MaterialTheme.colorScheme.errorContainer,
+//                    shadowElevation = 2.dp
+//                ) {
+//                    Icon(imageVector = Icons.Default.Close, contentDescription = null, modifier = Modifier.padding(4.dp), tint = MaterialTheme.colorScheme.onErrorContainer)
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun CelebrationBanner(visible: Boolean) {

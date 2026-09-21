@@ -69,7 +69,7 @@ fun LogScreen(
         R.string.logged_success_5,
         R.string.logged_success_6
     )
-    val uploadingPhotoMsg = stringResource(R.string.uploading_photo)
+//    val uploadingPhotoMsg = stringResource(R.string.uploading_photo)
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) selectedImageUri.value = uri
@@ -148,25 +148,25 @@ fun LogScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Photo Logic Phase 2
-            /*
-            SectionLabel(stringResource(R.string.picture_optional))
-            PhotoPicker(
-                selectedUri = selectedImageUri.value,
-                onGalleryClick = { galleryLauncher.launch("image/*") },
-                onCameraClick = {
-                    val file = File(ctx.cacheDir, "images/${UUID.randomUUID()}.jpg").apply {
-                        parentFile?.mkdirs()
-                    }
-                    val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-                    tempImageUri = uri
-                    selectedImageUri.value = uri
-                    cameraLauncher.launch(uri)
-                },
-                onRemove = { selectedImageUri.value = null }
-            )
+//            /*
+//            SectionLabel(stringResource(R.string.picture_optional))
+//            PhotoPicker(
+//                selectedUri = selectedImageUri.value,
+//                onGalleryClick = { galleryLauncher.launch("image/*") },
+//                onCameraClick = {
+//                    val file = File(ctx.cacheDir, "images/${UUID.randomUUID()}.jpg").apply {
+//                        parentFile?.mkdirs()
+//                    }
+//                    val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
+//                    tempImageUri = uri
+//                    selectedImageUri.value = uri
+//                    cameraLauncher.launch(uri)
+//                },
+//                onRemove = { selectedImageUri.value = null }
+//            )
+//
+//            Spacer(modifier = Modifier.height(24.dp)) */
 
-            Spacer(modifier = Modifier.height(24.dp))
-            */
 
             Button(
                 onClick = {
@@ -204,24 +204,24 @@ fun LogScreen(
                     }
 
                     // Photo Logic Phase 2
-                    /*
-                    if (selectedImageUri.value != null) {
-                        Log.d("Coupoop", "Image selected, starting upload")
-                        status.value = uploadingPhotoMsg
-                        StorageManager.uploadPhoto(selectedImageUri.value!!) { ok, url ->
-                            if (ok) {
-                                Log.d("Coupoop", "Image uploaded: $url")
-                                onComplete(url)
-                            } else {
-                                Log.e("Coupoop", "Image upload failed: $url")
-                                status.value = url
-                            }
-                        }
-                    } else {
-                        Log.d("Coupoop", "No image, adding log directly")
-                        onComplete(null)
-                    }
-                    */
+//
+//                    if (selectedImageUri.value != null) {
+//                        Log.d("Coupoop", "Image selected, starting upload")
+//                        status.value = uploadingPhotoMsg
+//                        StorageManager.uploadPhoto(selectedImageUri.value!!) { ok, url ->
+//                            if (ok) {
+//                                Log.d("Coupoop", "Image uploaded: $url")
+//                                onComplete(url)
+//                            } else {
+//                                Log.e("Coupoop", "Image upload failed: $url")
+//                                status.value = url
+//                            }
+//                        }
+//                    } else {
+//                        Log.d("Coupoop", "No image, adding log directly")
+//                        onComplete(null)
+//                    }
+//                    */
                     onComplete(null)
                 },
                 modifier = Modifier.fillMaxWidth(),
