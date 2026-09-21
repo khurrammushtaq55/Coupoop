@@ -94,38 +94,12 @@ fun FeedScreen(
     val celebration = remember { mutableStateOf(false) }
     val showSettings = remember { mutableStateOf(false) }
 
-    val selectedBristol = remember { mutableStateOf<Int?>(null) }
-    val selectedColor = remember { mutableStateOf<String?>(null) }
-    val selectedMood = remember { mutableStateOf<String?>(null) }
-    val selectedVolume = remember { mutableStateOf<String?>(null) }
-    val selectedConditions = remember { mutableStateOf<Set<String>>(emptySet()) }
-    val selectedImageUri = remember { mutableStateOf<android.net.Uri?>(null) }
-
     val currentStreak = remember { mutableIntStateOf(0) }
     val weeklyCount = remember { mutableIntStateOf(0) }
 
     val confettiState = remember { mutableStateListOf<Party>() }
-
+    
     val ctx = LocalContext.current
-    val successMessages = listOf(
-        R.string.logged_success_1,
-        R.string.logged_success_2,
-        R.string.logged_success_3,
-        R.string.logged_success_4,
-        R.string.logged_success_5,
-        R.string.logged_success_6
-    )
-    val uploadingPhotoMsg = stringResource(R.string.uploading_photo)
-
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) selectedImageUri.value = uri
-    }
-
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        // tempImageUri is already set, so if success we just keep it
-    }
-
-    var tempImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
     DisposableEffect(userId, refreshTrigger, forcedPairingId) {
         if (isPreview) return@DisposableEffect onDispose {}
@@ -226,204 +200,65 @@ fun FeedScreen(
         return
     }
 
+    var selectedTab by remember { mutableIntStateOf(0) }
+
     Scaffold(
         topBar = {
             CoupoopTopBar(
                 title = stringResource(R.string.app_name),
                 onActionClick = { showSettings.value = true }
             )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp
+            ) {
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = { Icon(painterResource(R.drawable.ic_poop_fill), contentDescription = null, modifier = Modifier.size(24.dp)) },
+                    label = { Text(stringResource(R.string.log_poop)) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = LightCoral,
+                        selectedTextColor = LightCoral,
+                        indicatorColor = LightChipBg
+                    )
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    icon = { Icon(Icons.Default.Add, contentDescription = null) }, // placeholder icon for activity
+                    label = { Text(stringResource(R.string.recent_activity)) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = LightCoral,
+                        selectedTextColor = LightCoral,
+                        indicatorColor = LightChipBg
+                    )
+                )
+            }
         }
     ) { padding ->
-        val facts = remember {
-            listOf(
-                R.string.fact_1,
-                R.string.fact_2,
-                R.string.fact_3,
-                R.string.fact_4,
-                R.string.fact_5,
-                R.string.fact_6,
-                R.string.fact_7,
-                R.string.fact_8,
-                R.string.fact_9,
-                R.string.fact_10,
-                R.string.fact_11,
-                R.string.fact_12
-            )
-        }
-        val randomFactRes = remember { facts.random() }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp)
-        ) {
-            item {
-                StatsStrip(
-                    streak = currentStreak.intValue,
+        Box(modifier = Modifier.padding(padding)) {
+            if (selectedTab == 0) {
+                LogScreen(
+                    user = user,
+                    userId = userId,
+                    pairingId = pairingIdState.value,
+                    currentStreak = currentStreak.intValue,
                     weeklyCount = weeklyCount.intValue,
-                    lastLoggedTs = logs.firstOrNull()?.get("timestamp") as? Timestamp
+                    lastLoggedTs = logs.firstOrNull()?.get("timestamp") as? Timestamp,
+                    celebrationVisible = celebration.value,
+                    onConfettiBurst = { confettiState.addAll(it) },
+                    status = status
                 )
-
-                CelebrationBanner(visible = celebration.value)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                PoopFactCard(factText = stringResource(id = randomFactRes))
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SectionLabel(stringResource(R.string.type_optional))
-                BristolTypePicker(selectedBristol.value) { selectedBristol.value = it }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SectionLabel(stringResource(R.string.volume_optional))
-                VolumePicker(selectedVolume.value) { selectedVolume.value = it }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SectionLabel(stringResource(R.string.color_optional))
-                PoopColorPicker(selectedColor.value) { selectedColor.value = it }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SectionLabel(stringResource(R.string.mood_optional))
-                MoodPicker(selectedMood.value) { selectedMood.value = it }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SectionLabel(stringResource(R.string.conditions_optional))
-                ConditionsPicker(selectedConditions.value) { key ->
-                    selectedConditions.value = if (selectedConditions.value.contains(key)) {
-                        selectedConditions.value - key
-                    } else {
-                        selectedConditions.value + key
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SectionLabel(stringResource(R.string.picture_optional))
-                PhotoPicker(
-                    selectedUri = selectedImageUri.value,
-                    onGalleryClick = { galleryLauncher.launch("image/*") },
-                    onCameraClick = {
-                        val file = File(ctx.cacheDir, "images/${UUID.randomUUID()}.jpg").apply {
-                            parentFile?.mkdirs()
-                        }
-                        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-                        tempImageUri = uri
-                        selectedImageUri.value = uri
-                        cameraLauncher.launch(uri)
-                    },
-                    onRemove = { selectedImageUri.value = null }
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = {
-                        val pid = pairingIdState.value ?: return@Button
-                        val uid = userId ?: return@Button
-
-                        val onComplete: (String?) -> Unit = { photoUrl ->
-                            LoggingManager.addLog(
-                                pairingId = pid,
-                                userId = uid,
-                                bristol = selectedBristol.value,
-                                mood = selectedMood.value,
-                                color = selectedColor.value,
-                                volume = selectedVolume.value,
-                                conditions = selectedConditions.value.toList().ifEmpty { null },
-                                photoUrl = photoUrl,
-                                displayName = user?.displayName ?: "Debug User"
-                            ) { success, msg ->
-                                if (success) {
-                                    selectedBristol.value = null
-                                    selectedColor.value = null
-                                    selectedMood.value = null
-                                    selectedVolume.value = null
-                                    selectedConditions.value = emptySet()
-                                    selectedImageUri.value = null
-                                    status.value = ctx.getString(successMessages.random())
-
-                                    // Trigger confetti burst 💩🎉
-                                    confettiState.addAll(
-                                        listOf(
-                                            Party(
-                                                speed = 0f,
-                                                maxSpeed = 30f,
-                                                damping = 0.9f,
-                                                spread = 360,
-                                                colors = listOf(0xFFB94A31.toInt(), 0xFFFF6B4A.toInt(), 0xFF2AB6A6.toInt()),
-                                                position = Position.Relative(0.5, 0.7),
-                                                emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(30)
-                                            )
-                                        )
-                                    )
-                                } else {
-                                    status.value = msg
-                                }
-                            }
-                        }
-
-                        if (selectedImageUri.value != null) {
-                            status.value = uploadingPhotoMsg
-                            StorageManager.uploadPhoto(selectedImageUri.value!!) { ok, url ->
-                                if (ok) onComplete(url)
-                                else status.value = url
-                            }
-                        } else {
-                            onComplete(null)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = CircleShape
-                ) {
-                    Text(stringResource(R.string.log_poop), style = MaterialTheme.typography.labelLarge)
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Surface(
-                    onClick = {
-                        pairingIdState.value?.let { RecapShare.shareWeeklyRecap(ctx, it) }
-                    },
-                    shape = CircleShape,
-                    color = LightChipBg,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Box(modifier = Modifier.padding(12.dp), contentAlignment = Alignment.Center) {
-                        Text(stringResource(R.string.share_recap), style = MaterialTheme.typography.labelLarge, color = LightCoralDark)
-                    }
-                }
-
-                status.value?.let {
-                    Text(
-                        it,
-                        modifier = Modifier.padding(top = 12.dp),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LightCoralDark
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(stringResource(R.string.recent_activity), style = MaterialTheme.typography.headlineMedium.copy(fontSize = 16.sp))
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (logs.isEmpty()) {
-                item {
-                    EmptyState()
-                }
             } else {
-                items(items = logs) { log ->
-                    LogCard(log = log, currentUserId = userId, pairingId = pairingIdState.value)
-                }
+                ActivityScreen(
+                    logs = logs,
+                    userId = userId,
+                    pairingId = pairingIdState.value
+                )
             }
-
-            item { Spacer(modifier = Modifier.height(32.dp)) }
         }
 
         KonfettiView(
