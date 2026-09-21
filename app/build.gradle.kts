@@ -74,6 +74,9 @@ dependencies {
     // Play In-App Review (rating prompt)
     implementation(libs.play.review.ktx)
 
+    // Google Mobile Ads (banner + interstitial)
+    implementation(libs.play.services.ads)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

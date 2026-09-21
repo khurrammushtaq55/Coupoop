@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.mmushtaq04.coupoop.data.ads.AdMobManager
 import com.mmushtaq04.coupoop.data.firebase.AuthManager
 import com.mmushtaq04.coupoop.data.firebase.LoggingManager
 import com.mmushtaq04.coupoop.data.firebase.PairingManager
@@ -17,10 +18,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        AdMobManager.initialize(this)
+
         setContent {
             CoupoopApp()
         }
 
+        AdMobManager.scheduleInterstitial(this)
         handleQuickLogIntent(intent)
     }
 

@@ -34,6 +34,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.mmushtaq04.coupoop.R
+import com.mmushtaq04.coupoop.data.ads.AdMobManager
 import com.mmushtaq04.coupoop.data.firebase.AuthManager
 import com.mmushtaq04.coupoop.data.firebase.FirestoreRepository
 import com.mmushtaq04.coupoop.data.firebase.LoggingManager
@@ -263,31 +264,34 @@ fun FeedScreen(
                 )
             },
             bottomBar = {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ) {
-                    NavigationBarItem(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        icon = { Icon(painterResource(R.drawable.ic_poop_fill), contentDescription = null, modifier = Modifier.size(24.dp)) },
-                        label = { Text(stringResource(R.string.log_poop)) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = LightCoral,
-                            selectedTextColor = LightCoral,
-                            indicatorColor = LightChipBg
+                Column {
+                    AdMobManager.BannerAd()
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ) {
+                        NavigationBarItem(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            icon = { Icon(painterResource(R.drawable.ic_poop_fill), contentDescription = null, modifier = Modifier.size(24.dp)) },
+                            label = { Text(stringResource(R.string.log_poop)) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = LightCoral,
+                                selectedTextColor = LightCoral,
+                                indicatorColor = LightChipBg
+                            )
                         )
-                    )
-                    NavigationBarItem(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        label = { Text(stringResource(R.string.recent_activity)) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = LightCoral,
-                            selectedTextColor = LightCoral,
-                            indicatorColor = LightChipBg
+                        NavigationBarItem(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                            label = { Text(stringResource(R.string.recent_activity)) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = LightCoral,
+                                selectedTextColor = LightCoral,
+                                indicatorColor = LightChipBg
+                            )
                         )
-                    )
+                    }
                 }
             }
         ) { padding ->

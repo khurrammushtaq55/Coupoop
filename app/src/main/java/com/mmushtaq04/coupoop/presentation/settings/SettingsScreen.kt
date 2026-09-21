@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mmushtaq04.coupoop.BuildConfig
 import com.mmushtaq04.coupoop.R
+import com.mmushtaq04.coupoop.PrefsManager
 import com.mmushtaq04.coupoop.data.account.AccountManager
+import com.mmushtaq04.coupoop.data.ads.AdMobManager
 import com.mmushtaq04.coupoop.data.firebase.AuthManager
 import com.mmushtaq04.coupoop.data.firebase.NotificationPrefsManager
 import com.mmushtaq04.coupoop.data.firebase.PairingManager
@@ -126,6 +128,20 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val isPremium = PrefsManager.isPremium(context)
+            OutlinedButton(
+                onClick = {
+                    PrefsManager.setPremium(context, !isPremium)
+                    status = if (!isPremium) "Premium enabled — ads hidden" else "Premium disabled — ads will return"
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = CircleShape
+            ) {
+                Text(if (isPremium) "Disable premium / show ads" else "Unlock premium / remove ads", style = MaterialTheme.typography.labelLarge)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             OutlinedButton(
                 onClick = onSignOut,
                 modifier = Modifier.fillMaxWidth(),
@@ -193,6 +209,9 @@ fun SettingsScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            AdMobManager.BannerAd()
 
             Spacer(modifier = Modifier.height(32.dp))
             Button(

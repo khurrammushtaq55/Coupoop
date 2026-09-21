@@ -8,6 +8,7 @@ appcompat = "1.8.0"
 activityCompose = "1.13.0"
 composeBom = "2026.08.00"
 firebaseBom = "32.2.0"
+playServicesAds = "23.4.0"
 playServicesAuth = "20.5.0"
 glanceAppwidget = "1.2.0"
 playReview = "2.0.2"
@@ -39,6 +40,7 @@ firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx"
 firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glanceAppwidget" }
 glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glanceAppwidget" }
