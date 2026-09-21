@@ -104,7 +104,14 @@ fun FeedScreen(
     val confettiState = remember { mutableStateListOf<Party>() }
     
     val ctx = LocalContext.current
-    val loggedSuccessMsg = stringResource(R.string.logged_success)
+    val successMessages = listOf(
+        R.string.logged_success_1,
+        R.string.logged_success_2,
+        R.string.logged_success_3,
+        R.string.logged_success_4,
+        R.string.logged_success_5,
+        R.string.logged_success_6
+    )
     val uploadingPhotoMsg = stringResource(R.string.uploading_photo)
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -294,7 +301,7 @@ fun FeedScreen(
                                     selectedColor.value = null
                                     selectedMood.value = null
                                     selectedImageUri.value = null
-                                    status.value = loggedSuccessMsg
+                                    status.value = ctx.getString(successMessages.random())
 
                                     // Trigger confetti burst 💩🎉
                                     confettiState.addAll(
