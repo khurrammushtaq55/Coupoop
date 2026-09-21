@@ -5,7 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import androidx.core.content.FileProvider
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
+import com.mmushtaq04.coupoop.data.firebase.FirestoreRepository
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Date
@@ -20,7 +20,7 @@ object RecapShare {
      * generates and shares the recap image.
      */
     fun shareWeeklyRecap(context: Context, pairingId: String) {
-        val db = FirebaseFirestore.getInstance("coupoop")
+        val db = FirestoreRepository.db()
         val pairingRef = db.collection("pairings").document(pairingId)
         val sevenDaysAgo = Timestamp(Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)))
 

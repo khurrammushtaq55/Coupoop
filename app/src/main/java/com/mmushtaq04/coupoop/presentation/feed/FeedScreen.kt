@@ -31,11 +31,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.data.firebase.AuthManager
+import com.mmushtaq04.coupoop.data.firebase.FirestoreRepository
 import com.mmushtaq04.coupoop.data.firebase.LoggingManager
 import com.mmushtaq04.coupoop.data.firebase.PairingManager
 import com.mmushtaq04.coupoop.data.review.RatingManager
@@ -110,7 +110,10 @@ fun FeedScreen(
         var streakRegistration: ListenerRegistration? = null
 
         if (forcedPairingId != null) {
-            logsRegistration = LoggingManager.listenForLogs(forcedPairingId) { items ->
+            logsRegistration = LoggingManager.listenForLogs(
+                forcedPairingId,
+                limit = FirestoreRepository.DEFAULT_QUERY_LIMIT
+            ) { items ->
                 logs.clear()
                 logs.addAll(items)
                 val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
@@ -124,7 +127,10 @@ fun FeedScreen(
                 pairingIdState.value = pairingId
                 pairingChecked.value = true
                 if (pairingId != null) {
-                    logsRegistration = LoggingManager.listenForLogs(pairingId) { items ->
+                    logsRegistration = LoggingManager.listenForLogs(
+                        pairingId,
+                        limit = FirestoreRepository.DEFAULT_QUERY_LIMIT
+                    ) { items ->
                         logs.clear()
                         logs.addAll(items)
                         val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
@@ -133,7 +139,7 @@ fun FeedScreen(
                         }
                     }
                     var lastCelebrationId: String? = null
-                    celebrationsRegistration = FirebaseFirestore.getInstance("coupoop")
+                    celebrationsRegistration = FirestoreRepository.db()
                         .collection("pairings").document(pairingId)
                         .collection("celebrations")
                         .orderBy("at", Query.Direction.DESCENDING)
@@ -153,7 +159,7 @@ fun FeedScreen(
                             }
                         }
 
-                    streakRegistration = FirebaseFirestore.getInstance("coupoop")
+                    streakRegistration = FirestoreRepository.db()
                         .collection("pairings").document(pairingId)
                         .collection("streaks").document("sync")
                         .addSnapshotListener { snap, err ->
@@ -187,7 +193,7 @@ fun FeedScreen(
 
     LaunchedEffect(userId, shouldCheckUsername) {
         if (!shouldCheckUsername || userId == null) return@LaunchedEffect
-        FirebaseFirestore.getInstance("coupoop").collection("users").document(userId).get()
+        FirestoreRepository.userDoc(userId).get()
             .addOnSuccessListener { doc ->
                 needsUsername.value = doc.getBoolean("usernameSet") != true
                 usernameChecked.value = true

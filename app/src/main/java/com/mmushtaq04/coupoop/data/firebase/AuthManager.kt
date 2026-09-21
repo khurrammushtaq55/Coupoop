@@ -4,6 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.SetOptions
 
 object AuthManager {
     private val auth: FirebaseAuth by lazy { Firebase.auth }
@@ -78,11 +79,10 @@ object AuthManager {
                 onResult(false, task.exception?.localizedMessage)
                 return@addOnCompleteListener
             }
-            com.google.firebase.firestore.FirebaseFirestore.getInstance("coupoop")
-                .collection("users").document(user.uid)
+            FirestoreRepository.userDoc(user.uid)
                 .set(
                     mapOf("displayName" to name, "usernameSet" to true),
-                    com.google.firebase.firestore.SetOptions.merge()
+                    SetOptions.merge()
                 )
                 .addOnSuccessListener { onResult(true, null) }
                 .addOnFailureListener { e -> onResult(false, e.localizedMessage) }

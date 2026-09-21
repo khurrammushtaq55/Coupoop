@@ -11,10 +11,10 @@ import com.google.firebase.firestore.SetOptions
  * users/{uid} doc may not exist yet the very first time this is touched.
  */
 object NotificationPrefsManager {
-    private val db = FirebaseFirestore.getInstance("coupoop")
+    private val db = FirestoreRepository.db()
 
     fun isPairingMuted(userUid: String, pairingId: String, onResult: (Boolean) -> Unit) {
-        db.collection("users").document(userUid).get()
+        FirestoreRepository.userDoc(userUid).get()
             .addOnSuccessListener { doc ->
                 val muted = doc.get("mutedPairings") as? List<*>
                 onResult(muted?.contains(pairingId) == true)
@@ -23,8 +23,14 @@ object NotificationPrefsManager {
     }
 
     fun setPairingMuted(userUid: String, pairingId: String, muted: Boolean, onResult: (Boolean, String?) -> Unit) {
+        val guardKey = "mute:$userUid:$pairingId"
+        if (!FirestoreCostGuard.canWrite(guardKey, 1000L)) {
+            onResult(false, "Please wait before updating this mute preference.")
+            return
+        }
+
         val update = if (muted) FieldValue.arrayUnion(pairingId) else FieldValue.arrayRemove(pairingId)
-        db.collection("users").document(userUid)
+        FirestoreRepository.userDoc(userUid)
             .set(mapOf("mutedPairings" to update), SetOptions.merge())
             .addOnSuccessListener { onResult(true, null) }
             .addOnFailureListener { e -> onResult(false, e.localizedMessage) }

@@ -12,7 +12,7 @@ import com.mmushtaq04.coupoop.data.firebase.AuthManager
  * doc, then deletion of the Firebase Auth account itself.
  */
 object AccountManager {
-    private val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance("coupoop") }
+    private val db: FirebaseFirestore by lazy { com.mmushtaq04.coupoop.data.firebase.FirestoreRepository.db() }
 
     fun deleteAccount(onResult: (success: Boolean, message: String?) -> Unit) {
         val user = AuthManager.currentUser()
