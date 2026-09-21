@@ -13,6 +13,7 @@ glanceAppwidget = "1.2.0"
 playReview = "2.0.2"
 coreSplashscreen = "1.2.0"
 konfetti = "2.0.4"
+coil = "2.6.0"
 
 junit = "4.13.2"
 androidxJunit = "1.1.5"
@@ -29,10 +30,12 @@ androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
 
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx" }
+firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
@@ -41,6 +44,7 @@ glance-material3 = { module = "androidx.glance:glance-material3", version.ref = 
 play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "playReview" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 konfetti-compose = { module = "nl.dionsegijn:konfetti-compose", version.ref = "konfetti" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }

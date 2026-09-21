@@ -51,13 +51,16 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.core)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.konfetti.compose)
+    implementation(libs.coil.compose)
 
     // Firebase BOM and KTX libraries
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.storage.ktx)
     implementation(libs.firebase.messaging)
 
     // Optional Google Sign-In for account recovery

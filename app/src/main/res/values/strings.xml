@@ -44,6 +44,10 @@
     <string name="type_optional">Type</string>
     <string name="color_optional">Color</string>
     <string name="mood_optional">Mood</string>
+    <string name="picture_optional">Picture</string>
+    <string name="take_picture">Take picture</string>
+    <string name="pick_from_gallery">Gallery</string>
+    <string name="uploading_photo">Uploading photo…</string>
     <string name="logged_success">Logged! 💩</string>
     <string name="sync_moment">🎉 Sync moment! You two logged close together 🎉</string>
     <string name="recent_activity">Recent activity</string>

@@ -1,9 +1,13 @@
 package com.mmushtaq04.coupoop.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,19 +15,27 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import coil.compose.AsyncImage
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -33,6 +45,7 @@ import com.mmushtaq04.coupoop.LoggingManager
 import com.mmushtaq04.coupoop.PairingManager
 import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.RatingManager
+import com.mmushtaq04.coupoop.StorageManager
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.LightChipBg
 import com.mmushtaq04.coupoop.ui.theme.LightCoral
@@ -43,7 +56,9 @@ import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import nl.dionsegijn.konfetti.core.PartySystem
+import java.io.File
 import java.util.Date
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @Composable
@@ -81,6 +96,7 @@ fun FeedScreen(
     val selectedBristol = remember { mutableStateOf<Int?>(null) }
     val selectedColor = remember { mutableStateOf<String?>(null) }
     val selectedMood = remember { mutableStateOf<String?>(null) }
+    val selectedImageUri = remember { mutableStateOf<android.net.Uri?>(null) }
     
     val currentStreak = remember { mutableIntStateOf(0) }
     val weeklyCount = remember { mutableIntStateOf(0) }
@@ -89,6 +105,17 @@ fun FeedScreen(
     
     val ctx = LocalContext.current
     val loggedSuccessMsg = stringResource(R.string.logged_success)
+    val uploadingPhotoMsg = stringResource(R.string.uploading_photo)
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) selectedImageUri.value = uri
+    }
+    
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        // tempImageUri is already set, so if success we just keep it
+    }
+    
+    var tempImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
     DisposableEffect(userId, refreshTrigger, forcedPairingId) {
         if (isPreview) return@DisposableEffect onDispose {}
@@ -227,43 +254,76 @@ fun FeedScreen(
                 SectionLabel(stringResource(R.string.mood_optional))
                 MoodPicker(selectedMood.value) { selectedMood.value = it }
                 
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                SectionLabel(stringResource(R.string.picture_optional))
+                PhotoPicker(
+                    selectedUri = selectedImageUri.value,
+                    onGalleryClick = { galleryLauncher.launch("image/*") },
+                    onCameraClick = {
+                        val file = File(ctx.cacheDir, "images/${UUID.randomUUID()}.jpg").apply {
+                            parentFile?.mkdirs()
+                        }
+                        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
+                        tempImageUri = uri
+                        selectedImageUri.value = uri
+                        cameraLauncher.launch(uri)
+                    },
+                    onRemove = { selectedImageUri.value = null }
+                )
+                
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 Button(
                     onClick = {
                         val pid = pairingIdState.value ?: return@Button
                         val uid = userId ?: return@Button
-                        LoggingManager.addLog(
-                            pairingId = pid,
-                            userId = uid,
-                            bristol = selectedBristol.value,
-                            mood = selectedMood.value,
-                            color = selectedColor.value,
-                            displayName = user?.displayName ?: "Debug User"
-                        ) { success, msg ->
-                            if (success) {
-                                selectedBristol.value = null
-                                selectedColor.value = null
-                                selectedMood.value = null
-                                status.value = loggedSuccessMsg
+                        
+                        val onComplete: (String?) -> Unit = { photoUrl ->
+                            LoggingManager.addLog(
+                                pairingId = pid,
+                                userId = uid,
+                                bristol = selectedBristol.value,
+                                mood = selectedMood.value,
+                                color = selectedColor.value,
+                                photoUrl = photoUrl,
+                                displayName = user?.displayName ?: "Debug User"
+                            ) { success, msg ->
+                                if (success) {
+                                    selectedBristol.value = null
+                                    selectedColor.value = null
+                                    selectedMood.value = null
+                                    selectedImageUri.value = null
+                                    status.value = loggedSuccessMsg
 
-                                // Trigger confetti burst 💩🎉
-                                confettiState.addAll(
-                                    listOf(
-                                        Party(
-                                            speed = 0f,
-                                            maxSpeed = 30f,
-                                            damping = 0.9f,
-                                            spread = 360,
-                                            colors = listOf(0xFFB94A31.toInt(), 0xFFFF6B4A.toInt(), 0xFF2AB6A6.toInt()),
-                                            position = Position.Relative(0.5, 0.7),
-                                            emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(30)
+                                    // Trigger confetti burst 💩🎉
+                                    confettiState.addAll(
+                                        listOf(
+                                            Party(
+                                                speed = 0f,
+                                                maxSpeed = 30f,
+                                                damping = 0.9f,
+                                                spread = 360,
+                                                colors = listOf(0xFFB94A31.toInt(), 0xFFFF6B4A.toInt(), 0xFF2AB6A6.toInt()),
+                                                position = Position.Relative(0.5, 0.7),
+                                                emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(30)
+                                            )
                                         )
                                     )
-                                )
-                            } else {
-                                status.value = msg
+                                } else {
+                                    status.value = msg
+                                }
                             }
+                        }
+
+                        if (selectedImageUri.value != null) {
+                            status.value = uploadingPhotoMsg
+                            StorageManager.uploadPhoto(selectedImageUri.value!!) { ok, url ->
+                                if (ok) onComplete(url)
+                                else status.value = url
+                            }
+                        } else {
+                            onComplete(null)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -374,13 +434,13 @@ fun SectionLabel(text: String) {
 @Composable
 fun BristolTypePicker(selected: Int?, onSelect: (Int?) -> Unit) {
     val types = listOf(
-        1 to ("🐐" to "Pellets"),
-        2 to ("🌰" to "Lumpy"),
-        3 to ("🌭" to "Cracked"),
-        4 to ("🐍" to "Smooth"),
-        5 to ("🫘" to "Soft blobs"),
-        6 to ("☁️" to "Mushy"),
-        7 to ("💦" to "Liquid")
+        1 to (R.drawable.ic_bristol_type1 to "Pellets"),
+        2 to (R.drawable.ic_bristol_type2 to "Lumpy"),
+        3 to (R.drawable.ic_bristol_type3 to "Cracked"),
+        4 to (R.drawable.ic_bristol_type4 to "Smooth"),
+        5 to (R.drawable.ic_bristol_type5 to "Soft blobs"),
+        6 to (R.drawable.ic_bristol_type6 to "Mushy"),
+        7 to (R.drawable.ic_bristol_type7 to "Liquid")
     )
     
     Column {
@@ -399,7 +459,7 @@ fun BristolTypePicker(selected: Int?, onSelect: (Int?) -> Unit) {
 }
 
 @Composable
-fun BristolChip(id: Int, emoji: String, label: String, isSelected: Boolean, onClick: () -> Unit) {
+fun BristolChip(id: Int, iconRes: Int, label: String, isSelected: Boolean, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = Modifier.width(76.dp),
@@ -410,8 +470,21 @@ fun BristolChip(id: Int, emoji: String, label: String, isSelected: Boolean, onCl
         Column(modifier = Modifier.padding(8.dp)) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(emoji, fontSize = 20.sp)
-                    Text(label, fontSize = 10.5.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, lineHeight = 12.sp, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface)
+                    Icon(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = if (isSelected) Color.White else Color(0xFF8B4513)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = label,
+                        fontSize = 10.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 12.sp,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
@@ -421,19 +494,19 @@ fun BristolChip(id: Int, emoji: String, label: String, isSelected: Boolean, onCl
 @Composable
 fun PoopColorPicker(selected: String?, onSelect: (String?) -> Unit) {
     val colors = listOf(
-        "brown" to "🟤 Brown",
-        "yellow" to "🟡 Yellow",
-        "green" to "🟢 Green",
-        "black" to "⚫ Black",
-        "red" to "🔴 Red"
+        "brown" to ("Brown" to Color(0xFF8B4513)),
+        "yellow" to ("Yellow" to Color(0xFFFFEB3B)),
+        "green" to ("Green" to Color(0xFF4CAF50)),
+        "black" to ("Black" to Color(0xFF212121)),
+        "red" to ("Red" to Color(0xFFF44336))
     )
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            colors.take(3).forEach { (key, label) ->
-                PoopColorChip(key, label, selected == key) { onSelect(if (selected == key) null else key) }
+            colors.take(3).forEach { (key, data) ->
+                PoopColorChip(key, data.first, data.second, selected == key) { onSelect(if (selected == key) null else key) }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -441,28 +514,39 @@ fun PoopColorPicker(selected: String?, onSelect: (String?) -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            colors.drop(3).forEach { (key, label) ->
-                PoopColorChip(key, label, selected == key) { onSelect(if (selected == key) null else key) }
+            colors.drop(3).forEach { (key, data) ->
+                PoopColorChip(key, data.first, data.second, selected == key) { onSelect(if (selected == key) null else key) }
             }
         }
     }
 }
 
 @Composable
-fun PoopColorChip(key: String, label: String, isSelected: Boolean, onClick: () -> Unit) {
+fun PoopColorChip(key: String, label: String, color: Color, isSelected: Boolean, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = CircleShape,
         color = if (isSelected) LightCoral else MaterialTheme.colorScheme.surface,
         border = if (isSelected) null else BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Text(
-            text = label,
+        Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_poop_fill),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = if (isSelected) Color.White else color
+            )
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
@@ -481,6 +565,61 @@ fun MoodPicker(selected: String?, onSelect: (String?) -> Unit) {
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(emoji, fontSize = 18.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PhotoPicker(
+    selectedUri: android.net.Uri?,
+    onGalleryClick: () -> Unit,
+    onCameraClick: () -> Unit,
+    onRemove: () -> Unit
+) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (selectedUri == null) {
+            Surface(
+                onClick = onCameraClick,
+                modifier = Modifier.size(64.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.take_picture), fontSize = 9.sp, modifier = Modifier.padding(top = 32.dp), textAlign = TextAlign.Center)
+                }
+            }
+            Surface(
+                onClick = onGalleryClick,
+                modifier = Modifier.size(64.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.pick_from_gallery), fontSize = 9.sp, modifier = Modifier.padding(top = 32.dp), textAlign = TextAlign.Center)
+                }
+            }
+        } else {
+            Box(modifier = Modifier.size(80.dp)) {
+                AsyncImage(
+                    model = selectedUri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Surface(
+                    onClick = onRemove,
+                    modifier = Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp).size(24.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shadowElevation = 2.dp
+                ) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = null, modifier = Modifier.padding(4.dp), tint = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
         }
@@ -535,6 +674,20 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
             
             if (meta.isNotEmpty()) {
                 Text(meta, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+            }
+            
+            val photoUrl = log["photoUrl"] as? String
+            if (!photoUrl.isNullOrEmpty()) {
+                AsyncImage(
+                    model = photoUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
             
             val logId = log["id"] as? String
@@ -616,6 +769,7 @@ fun LogCardPreview() {
                 "bristolType" to 4L,
                 "color" to "brown",
                 "mood" to "good",
+                "photoUrl" to "https://placehold.co/600x400/png",
                 "reactions" to mapOf("uid1" to "❤️", "uid2" to "😂")
             ),
             currentUserId = "uid1",
