@@ -70,6 +70,18 @@
     <string name="streak_count">%1$d 🔥</string>
     <string name="this_week_count">%1$d this week</string>
     <string name="no_pairing">No pairing found — create or join one first.</string>
+    <string name="volume_optional">Volume</string>
+    <string name="conditions_optional">Conditions</string>
+    <string name="volume_small">Small</string>
+    <string name="volume_normal">Normal</string>
+    <string name="volume_huge">Huge</string>
+    <string name="volume_gigantic">Gigantic</string>
+    <string name="condition_burning">Burning</string>
+    <string name="condition_crampy">Crampy</string>
+    <string name="condition_double_flush">Double flush</string>
+    <string name="condition_floating">Floating</string>
+    <string name="condition_hard_to_pass">Hard to pass</string>
+    <string name="condition_gassy">Gassy</string>
 
     <!-- Settings Screen -->
     <string name="back">← Back</string>

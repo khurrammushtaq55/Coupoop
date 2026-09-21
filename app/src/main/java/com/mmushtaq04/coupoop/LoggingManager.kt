@@ -14,6 +14,8 @@ object LoggingManager {
         bristol: Int? = null,
         mood: String? = null,
         color: String? = null,
+        volume: String? = null,
+        conditions: List<String>? = null,
         photoUrl: String? = null,
         note: String? = null,
         displayName: String? = null,
@@ -26,6 +28,8 @@ object LoggingManager {
             "bristolType" to bristol,
             "mood" to mood,
             "color" to color,
+            "volume" to volume,
+            "conditions" to conditions,
             "photoUrl" to photoUrl,
             "note" to note
         )

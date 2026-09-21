@@ -60,6 +60,7 @@ import java.io.File
 import java.util.Date
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlin.to
 
 @Composable
 fun FeedScreen(
@@ -75,7 +76,7 @@ fun FeedScreen(
     val pairingChecked = remember { mutableStateOf(forcedPairingId != null) }
     var refreshTrigger by remember { mutableStateOf(0) }
     val isPreview = LocalInspectionMode.current
-    val logs = remember { 
+    val logs = remember {
         mutableStateListOf<Map<String, Any>>().apply {
             if (isPreview && forcedPairingId != null) {
                 add(mapOf(
@@ -92,17 +93,19 @@ fun FeedScreen(
     val status = remember { mutableStateOf<String?>(null) }
     val celebration = remember { mutableStateOf(false) }
     val showSettings = remember { mutableStateOf(false) }
-    
+
     val selectedBristol = remember { mutableStateOf<Int?>(null) }
     val selectedColor = remember { mutableStateOf<String?>(null) }
     val selectedMood = remember { mutableStateOf<String?>(null) }
+    val selectedVolume = remember { mutableStateOf<String?>(null) }
+    val selectedConditions = remember { mutableStateOf<Set<String>>(emptySet()) }
     val selectedImageUri = remember { mutableStateOf<android.net.Uri?>(null) }
-    
+
     val currentStreak = remember { mutableIntStateOf(0) }
     val weeklyCount = remember { mutableIntStateOf(0) }
 
     val confettiState = remember { mutableStateListOf<Party>() }
-    
+
     val ctx = LocalContext.current
     val successMessages = listOf(
         R.string.logged_success_1,
@@ -117,11 +120,11 @@ fun FeedScreen(
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) selectedImageUri.value = uri
     }
-    
+
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         // tempImageUri is already set, so if success we just keep it
     }
-    
+
     var tempImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
     DisposableEffect(userId, refreshTrigger, forcedPairingId) {
@@ -135,11 +138,11 @@ fun FeedScreen(
             logsRegistration = LoggingManager.listenForLogs(forcedPairingId) { items ->
                 logs.clear()
                 logs.addAll(items)
-                
+
                 // Calculate weekly count locally from the logs we already have
                 val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
-                weeklyCount.intValue = items.count { 
-                    (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo 
+                weeklyCount.intValue = items.count {
+                    (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo
                 }
             }
         } else if (userId != null) {
@@ -151,11 +154,11 @@ fun FeedScreen(
                     logsRegistration = LoggingManager.listenForLogs(pairingId) { items ->
                         logs.clear()
                         logs.addAll(items)
-                        
+
                         // Calculate weekly count locally
                         val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
-                        weeklyCount.intValue = items.count { 
-                            (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo 
+                        weeklyCount.intValue = items.count {
+                            (it["timestamp"] as? Timestamp)?.toDate()?.time ?: 0 >= sevenDaysAgo
                         }
                     }
                     celebrationsRegistration = FirebaseFirestore.getInstance("coupoop")
@@ -167,7 +170,7 @@ fun FeedScreen(
                             if (err != null || snap == null) return@addSnapshotListener
                             if (!snap.isEmpty) { celebration.value = true }
                         }
-                        
+
                     streakRegistration = FirebaseFirestore.getInstance("coupoop")
                         .collection("pairings").document(pairingId)
                         .collection("streaks").document("sync")
@@ -248,7 +251,6 @@ fun FeedScreen(
             )
         }
         val randomFactRes = remember { facts.random() }
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -261,31 +263,46 @@ fun FeedScreen(
                     weeklyCount = weeklyCount.intValue,
                     lastLoggedTs = logs.firstOrNull()?.get("timestamp") as? Timestamp
                 )
-                
+
                 CelebrationBanner(visible = celebration.value)
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 PoopFactCard(factText = stringResource(id = randomFactRes))
 
-                
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 SectionLabel(stringResource(R.string.type_optional))
                 BristolTypePicker(selectedBristol.value) { selectedBristol.value = it }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
+                SectionLabel(stringResource(R.string.volume_optional))
+                VolumePicker(selectedVolume.value) { selectedVolume.value = it }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 SectionLabel(stringResource(R.string.color_optional))
                 PoopColorPicker(selectedColor.value) { selectedColor.value = it }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 SectionLabel(stringResource(R.string.mood_optional))
                 MoodPicker(selectedMood.value) { selectedMood.value = it }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
+                SectionLabel(stringResource(R.string.conditions_optional))
+                ConditionsPicker(selectedConditions.value) { key ->
+                    selectedConditions.value = if (selectedConditions.value.contains(key)) {
+                        selectedConditions.value - key
+                    } else {
+                        selectedConditions.value + key
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 SectionLabel(stringResource(R.string.picture_optional))
                 PhotoPicker(
                     selectedUri = selectedImageUri.value,
@@ -301,14 +318,14 @@ fun FeedScreen(
                     },
                     onRemove = { selectedImageUri.value = null }
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 Button(
                     onClick = {
                         val pid = pairingIdState.value ?: return@Button
                         val uid = userId ?: return@Button
-                        
+
                         val onComplete: (String?) -> Unit = { photoUrl ->
                             LoggingManager.addLog(
                                 pairingId = pid,
@@ -316,6 +333,8 @@ fun FeedScreen(
                                 bristol = selectedBristol.value,
                                 mood = selectedMood.value,
                                 color = selectedColor.value,
+                                volume = selectedVolume.value,
+                                conditions = selectedConditions.value.toList().ifEmpty { null },
                                 photoUrl = photoUrl,
                                 displayName = user?.displayName ?: "Debug User"
                             ) { success, msg ->
@@ -323,6 +342,8 @@ fun FeedScreen(
                                     selectedBristol.value = null
                                     selectedColor.value = null
                                     selectedMood.value = null
+                                    selectedVolume.value = null
+                                    selectedConditions.value = emptySet()
                                     selectedImageUri.value = null
                                     status.value = ctx.getString(successMessages.random())
 
@@ -361,9 +382,9 @@ fun FeedScreen(
                 ) {
                     Text(stringResource(R.string.log_poop), style = MaterialTheme.typography.labelLarge)
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Surface(
                     onClick = {
                         pairingIdState.value?.let { RecapShare.shareWeeklyRecap(ctx, it) }
@@ -379,8 +400,8 @@ fun FeedScreen(
 
                 status.value?.let {
                     Text(
-                        it, 
-                        modifier = Modifier.padding(top = 12.dp), 
+                        it,
+                        modifier = Modifier.padding(top = 12.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodySmall,
                         color = LightCoralDark
@@ -401,7 +422,7 @@ fun FeedScreen(
                     LogCard(log = log, currentUserId = userId, pairingId = pairingIdState.value)
                 }
             }
-            
+
             item { Spacer(modifier = Modifier.height(32.dp)) }
         }
 
@@ -440,7 +461,7 @@ fun StatsStrip(streak: Int, weeklyCount: Int, lastLoggedTs: Timestamp?) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         lastLoggedTs?.let {
             Text(
                 text = stringResource(R.string.last_logged, relativeTime(it.toDate())),
@@ -472,7 +493,7 @@ fun BristolTypePicker(selected: Int?, onSelect: (Int?) -> Unit) {
         6 to (R.drawable.ic_bristol_type6 to "Mushy"),
         7 to (R.drawable.ic_bristol_type7 to "Liquid")
     )
-    
+
     Column {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             types.take(4).forEach { (id, data) ->
@@ -602,6 +623,147 @@ fun MoodPicker(selected: String?, onSelect: (String?) -> Unit) {
 }
 
 @Composable
+fun VolumePicker(selected: String?, onSelect: (String?) -> Unit) {
+    val volumes = listOf(
+        "small" to (stringResource(R.string.volume_small) to 14.dp),
+        "normal" to (stringResource(R.string.volume_normal) to 20.dp),
+        "huge" to (stringResource(R.string.volume_huge) to 26.dp),
+        "gigantic" to (stringResource(R.string.volume_gigantic) to 32.dp)
+    )
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        volumes.forEach { (key, data) ->
+            VolumeChip(data.first, data.second, selected == key) { onSelect(if (selected == key) null else key) }
+        }
+    }
+}
+
+@Composable
+fun RowScope.VolumeChip(label: String, iconSize: androidx.compose.ui.unit.Dp, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.weight(1f),
+        shape = RoundedCornerShape(14.dp),
+        color = if (isSelected) LightCoral else MaterialTheme.colorScheme.surface,
+        border = if (isSelected) null else BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .height(56.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Same shared "poop pile" glyph as the Hue picker, just rendered at a
+            // different size per option — same trick the reference app uses for volume.
+            Icon(
+                painter = painterResource(id = R.drawable.ic_poop_fill),
+                contentDescription = null,
+                modifier = Modifier.size(iconSize),
+                tint = if (isSelected) Color.White else Color(0xFF8B4513)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp,
+                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+fun ConditionsPicker(selected: Set<String>, onToggle: (String) -> Unit) {
+    val conditions = listOf(
+        "burning" to (R.drawable.ic_condition_burning to stringResource(R.string.condition_burning)),
+        "crampy" to (R.drawable.ic_condition_crampy to stringResource(R.string.condition_crampy)),
+        "double_flush" to (R.drawable.ic_condition_double_flush to stringResource(R.string.condition_double_flush)),
+        "floating" to (R.drawable.ic_condition_floating to stringResource(R.string.condition_floating)),
+        "hard_to_pass" to (R.drawable.ic_condition_hard_to_pass to stringResource(R.string.condition_hard_to_pass)),
+        "gassy" to (R.drawable.ic_condition_gassy to stringResource(R.string.condition_gassy))
+    )
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            conditions.take(3).forEach { (key, data) ->
+                ConditionChip(data.first, data.second, selected.contains(key)) { onToggle(key) }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            conditions.drop(3).forEach { (key, data) ->
+                ConditionChip(data.first, data.second, selected.contains(key)) { onToggle(key) }
+            }
+        }
+    }
+}
+
+@Composable
+fun RowScope.ConditionChip(iconRes: Int, label: String, isChecked: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.weight(1f),
+        shape = RoundedCornerShape(14.dp),
+        color = if (isChecked) LightChipBg else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.5.dp, if (isChecked) LightCoral else MaterialTheme.colorScheme.outline)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Fixed multi-color icons (not tinted) — Image() rather than Icon()
+            // so the vector's own baked-in colors render as drawn, matching how
+            // the Google logo is handled in LoginScreen.
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+fun PoopFactCard(factText: String) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.fact_title),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = factText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+    }
+}
+
+
+@Composable
 fun PhotoPicker(
     selectedUri: android.net.Uri?,
     onGalleryClick: () -> Unit,
@@ -686,26 +848,55 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
         Column(modifier = Modifier.padding(14.dp)) {
             val ts = log["timestamp"] as? Timestamp
             val displayName = log["displayName"] as? String
-            
+
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Text(displayName ?: stringResource(R.string.someone), style = MaterialTheme.typography.titleMedium)
                 Text(relativeTime(ts?.toDate()), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            
+
             val bristol = (log["bristolType"] as? Long)?.toInt()
             val color = log["color"] as? String
+            val volume = log["volume"] as? String
             val mood = log["mood"] as? String
-            
+
             val meta = listOfNotNull(
                 bristol?.let { stringResource(R.string.bristol_type, it) },
                 color?.replaceFirstChar { it.uppercase() },
+                volume?.replaceFirstChar { it.uppercase() },
                 mood?.replaceFirstChar { it.uppercase() }
             ).joinToString(" • ")
-            
+
             if (meta.isNotEmpty()) {
                 Text(meta, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
             }
-            
+
+            @Suppress("UNCHECKED_CAST")
+            val conditions = (log["conditions"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+            if (conditions.isNotEmpty()) {
+                val conditionIcons = mapOf(
+                    "burning" to R.drawable.ic_condition_burning,
+                    "crampy" to R.drawable.ic_condition_crampy,
+                    "double_flush" to R.drawable.ic_condition_double_flush,
+                    "floating" to R.drawable.ic_condition_floating,
+                    "hard_to_pass" to R.drawable.ic_condition_hard_to_pass,
+                    "gassy" to R.drawable.ic_condition_gassy
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(top = 6.dp)
+                ) {
+                    conditions.forEach { key ->
+                        conditionIcons[key]?.let { iconRes ->
+                            Image(
+                                painter = painterResource(id = iconRes),
+                                contentDescription = key,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
             val photoUrl = log["photoUrl"] as? String
             if (!photoUrl.isNullOrEmpty()) {
                 AsyncImage(
@@ -719,19 +910,19 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
                     contentScale = ContentScale.Crop
                 )
             }
-            
+
             val logId = log["id"] as? String
             val reactions = (log["reactions"] as? Map<*, *>) ?: emptyMap<String, String>()
-            
+
             if (reactions.isNotEmpty()) {
                 val typedReactions = reactions.mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? String)?.let { value -> key to value } } }.toMap()
                 val summary = typedReactions.values.groupingBy { it }.eachCount()
                     .entries.joinToString(" ") { (emoji, count) -> if (count > 1) "$emoji×$count" else emoji }
                 Text(summary, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("❤️", "😂", "👍").forEach { emoji ->
                     val isMyReaction = currentUserId?.let { reactions[it] == emoji } ?: false
@@ -749,32 +940,6 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun PoopFactCard(factText: String) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondaryContainer)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.fact_title),
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = factText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
         }
     }
 }
@@ -847,5 +1012,21 @@ fun BristolTypePickerPreview() {
 fun PoopColorPickerPreview() {
     CoupoopTheme {
         PoopColorPicker(selected = "brown", onSelect = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun VolumePickerPreview() {
+    CoupoopTheme {
+        VolumePicker(selected = "huge", onSelect = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ConditionsPickerPreview() {
+    CoupoopTheme {
+        ConditionsPicker(selected = setOf("burning", "floating"), onToggle = {})
     }
 }
