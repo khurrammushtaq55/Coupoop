@@ -40,6 +40,13 @@
     <string name="enter_invite_code">Enter invite code</string>
     <string name="join_by_code">Join by code</string>
 
+    <!-- Name Entry -->
+    <string name="whats_your_name">What should we call you?</string>
+    <string name="name_helper">Your partner will see this name — pick whatever you like, it doesn\'t have to be your real name.</string>
+    <string name="name_placeholder">Your name</string>
+    <string name="name_required">Enter a name to continue</string>
+    <string name="continue_button">Continue</string>
+
     <!-- Feed Screen -->
     <string name="type_optional">Type</string>
     <string name="color_optional">Color</string>

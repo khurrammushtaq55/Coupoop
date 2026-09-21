@@ -59,6 +59,10 @@ fun FeedScreen(
     val user = if (LocalInspectionMode.current) null else AuthManager.currentUser()
     val userId = forcedUserId ?: user?.uid
 
+    val isBypass = LocalInspectionMode.current || forcedUserId != null
+    val usernameChecked = remember { mutableStateOf(isBypass) }
+    val needsUsername = remember { mutableStateOf(false) }
+
     val pairingIdState = remember { mutableStateOf(forcedPairingId) }
     val pairingChecked = remember { mutableStateOf(forcedPairingId != null) }
     var refreshTrigger by remember { mutableStateOf(0) }
@@ -169,6 +173,34 @@ fun FeedScreen(
             kotlinx.coroutines.delay(2500)
             showSuccessOverlay.value = false
         }
+    }
+
+    LaunchedEffect(userId) {
+        if (isBypass || userId == null) return@LaunchedEffect
+        FirebaseFirestore.getInstance("coupoop").collection("users").document(userId).get()
+            .addOnSuccessListener { doc ->
+                needsUsername.value = doc.getBoolean("usernameSet") != true
+                usernameChecked.value = true
+            }
+            .addOnFailureListener {
+                // Don't block sign-in indefinitely over this check failing.
+                usernameChecked.value = true
+            }
+    }
+
+    if (userId != null && !usernameChecked.value) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = LightCoral)
+        }
+        return
+    }
+
+    if (userId != null && needsUsername.value) {
+        NameEntryScreen(
+            initialName = user?.displayName ?: "",
+            onNameSet = { needsUsername.value = false }
+        )
+        return
     }
 
     if (userId != null && !pairingChecked.value) {
