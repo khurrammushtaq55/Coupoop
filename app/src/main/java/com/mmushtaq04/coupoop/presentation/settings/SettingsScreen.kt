@@ -22,6 +22,7 @@ import com.mmushtaq04.coupoop.data.ads.AdMobManager
 import com.mmushtaq04.coupoop.data.firebase.AuthManager
 import com.mmushtaq04.coupoop.data.firebase.NotificationPrefsManager
 import com.mmushtaq04.coupoop.data.firebase.PairingManager
+import com.mmushtaq04.coupoop.data.purchase.PremiumManager
 import com.mmushtaq04.coupoop.presentation.common.CoupoopTopBar
 import com.mmushtaq04.coupoop.ui.theme.CoupoopTheme
 import com.mmushtaq04.coupoop.ui.theme.Danger
@@ -128,16 +129,27 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val isPremium = PrefsManager.isPremium(context)
+            val isPremium = PremiumManager.isPremium(context)
             OutlinedButton(
                 onClick = {
-                    PrefsManager.setPremium(context, !isPremium)
-                    status = if (!isPremium) "Premium enabled — ads hidden" else "Premium disabled — ads will return"
+                    val activity = context as? androidx.activity.ComponentActivity
+                    if (activity == null) {
+                        status = context.getString(R.string.premium_flow_activity_required)
+                        return@OutlinedButton
+                    }
+
+                    PremiumManager.launchPurchaseFlow(activity) { success, message ->
+                        if (success) {
+                            status = context.getString(R.string.premium_purchase_started)
+                        } else {
+                            status = message ?: context.getString(R.string.premium_purchase_started)
+                        }
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = CircleShape
             ) {
-                Text(if (isPremium) "Disable premium / show ads" else "Unlock premium / remove ads", style = MaterialTheme.typography.labelLarge)
+                Text(if (isPremium) stringResource(R.string.premium_active) else stringResource(R.string.unlock_premium), style = MaterialTheme.typography.labelLarge)
             }
 
             Spacer(modifier = Modifier.height(12.dp))

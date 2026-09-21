@@ -33,12 +33,14 @@ import coil.compose.AsyncImage
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.mmushtaq04.coupoop.PrefsManager
 import com.mmushtaq04.coupoop.R
 import com.mmushtaq04.coupoop.data.ads.AdMobManager
 import com.mmushtaq04.coupoop.data.firebase.AuthManager
 import com.mmushtaq04.coupoop.data.firebase.FirestoreRepository
 import com.mmushtaq04.coupoop.data.firebase.LoggingManager
 import com.mmushtaq04.coupoop.data.firebase.PairingManager
+import com.mmushtaq04.coupoop.data.purchase.PremiumManager
 import com.mmushtaq04.coupoop.data.review.RatingManager
 import com.mmushtaq04.coupoop.presentation.activity.ActivityScreen
 import com.mmushtaq04.coupoop.presentation.auth.NameEntryScreen
@@ -103,6 +105,13 @@ fun FeedScreen(
     val successOverlayMessage = remember { mutableStateOf("") }
     
     val ctx = LocalContext.current
+    var showPremiumPrompt by remember { mutableStateOf(false) }
+
+    LaunchedEffect(userId) {
+        if (userId != null && !PremiumManager.isPremium(ctx) && PrefsManager.shouldShowPremiumPrompt(ctx)) {
+            showPremiumPrompt = true
+        }
+    }
 
     DisposableEffect(userId, refreshTrigger, forcedPairingId) {
         if (isPreview) return@DisposableEffect onDispose {}
@@ -319,6 +328,37 @@ fun FeedScreen(
                     )
                 }
             }
+        }
+
+        if (showPremiumPrompt) {
+            AlertDialog(
+                onDismissRequest = {
+                    showPremiumPrompt = false
+                    PrefsManager.markPremiumPromptShown(ctx)
+                },
+                title = { Text(stringResource(R.string.premium_dialog_title)) },
+                text = { Text(stringResource(R.string.premium_dialog_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showPremiumPrompt = false
+                        PrefsManager.markPremiumPromptShown(ctx)
+                        val activity = ctx as? androidx.activity.ComponentActivity
+                        if (activity != null) {
+                            PremiumManager.launchPurchaseFlow(activity) { _, _ -> }
+                        }
+                    }) {
+                        Text(stringResource(R.string.premium_dialog_upgrade))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showPremiumPrompt = false
+                        PrefsManager.markPremiumPromptShown(ctx)
+                    }) {
+                        Text(stringResource(R.string.premium_dialog_later))
+                    }
+                }
+            )
         }
 
         SuccessOverlay(

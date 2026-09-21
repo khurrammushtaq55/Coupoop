@@ -12,6 +12,8 @@ object PrefsManager {
 
     private const val PREFS_NAME = "coupoop_prefs"
     private const val KEY_PREMIUM = "premium_ad_free"
+    private const val KEY_PREMIUM_PROMPT_AT = "premium_prompt_at"
+    private const val PREMIUM_PROMPT_DELAY_MS = 3L * 24L * 60L * 60L * 1000L
 
     private fun repository(context: Context) = ThemeRepositoryImpl(context.applicationContext)
 
@@ -31,5 +33,22 @@ object PrefsManager {
     fun setPremium(context: Context, premium: Boolean) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_PREMIUM, premium).apply()
+    }
+
+    fun shouldShowPremiumPrompt(context: Context): Boolean {
+        if (isPremium(context)) return false
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val promptAt = prefs.getLong(KEY_PREMIUM_PROMPT_AT, 0L)
+        val now = System.currentTimeMillis()
+        if (promptAt == 0L) {
+            prefs.edit().putLong(KEY_PREMIUM_PROMPT_AT, now).apply()
+            return false
+        }
+        return now - promptAt >= PREMIUM_PROMPT_DELAY_MS
+    }
+
+    fun markPremiumPromptShown(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putLong(KEY_PREMIUM_PROMPT_AT, System.currentTimeMillis()).apply()
     }
 }

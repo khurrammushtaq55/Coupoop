@@ -10,6 +10,7 @@ import com.mmushtaq04.coupoop.data.ads.AdMobManager
 import com.mmushtaq04.coupoop.data.firebase.AuthManager
 import com.mmushtaq04.coupoop.data.firebase.LoggingManager
 import com.mmushtaq04.coupoop.data.firebase.PairingManager
+import com.mmushtaq04.coupoop.data.purchase.PremiumManager
 import com.mmushtaq04.coupoop.presentation.CoupoopApp
 
 class MainActivity : ComponentActivity() {
@@ -19,6 +20,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         AdMobManager.initialize(this)
+        PremiumManager.initialize(this)
 
         setContent {
             CoupoopApp()

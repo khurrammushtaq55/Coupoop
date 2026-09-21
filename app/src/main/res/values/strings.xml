@@ -51,12 +51,6 @@
     <string name="type_optional">Type</string>
     <string name="color_optional">Color</string>
     <string name="mood_optional">Mood</string>
-    <!-- Photo Logic Phase 2
-    <string name="picture_optional">Picture</string>
-    <string name="take_picture">Take picture</string>
-    <string name="pick_from_gallery">Gallery</string>
-    <string name="uploading_photo">Uploading photo…</string>
-    -->
     <string name="logged_success_1">Logged! 💩</string>
     <string name="logged_success_2">Certified fiber champion 🏆</string>
     <string name="logged_success_3">Nailed it 💪</string>
@@ -114,6 +108,14 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">System</string>
+    <string name="unlock_premium">Unlock premium / remove ads</string>
+    <string name="premium_active">Premium active — ads hidden</string>
+    <string name="premium_purchase_started">Google Play purchase started</string>
+    <string name="premium_flow_activity_required">Premium flow requires an activity context</string>
+    <string name="premium_dialog_title">Remove ads</string>
+    <string name="premium_dialog_message">Enjoy an ad-free experience and support the app. Upgrade to premium for a cleaner, calmer feed.</string>
+    <string name="premium_dialog_upgrade">Upgrade</string>
+    <string name="premium_dialog_later">Maybe later</string>
 
     <!-- Widget -->
     <string name="widget_description">One-tap poop log shortcut for your home screen</string>

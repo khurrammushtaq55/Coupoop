@@ -56,7 +56,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.konfetti.compose)
     implementation(libs.coil.compose)
-
     // Firebase BOM and KTX libraries
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
@@ -76,6 +75,9 @@ dependencies {
 
     // Google Mobile Ads (banner + interstitial)
     implementation(libs.play.services.ads)
+
+    // Google Play Billing for premium upgrades
+    implementation(libs.billing.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -8,10 +8,15 @@ import android.os.SystemClock
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -19,7 +24,7 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.mmushtaq04.coupoop.PrefsManager
+import com.mmushtaq04.coupoop.data.purchase.PremiumManager
 
 object AdMobManager {
     private const val BANNER_AD_UNIT_ID = "ca-app-pub-5966317256433132/6315959425"
@@ -37,7 +42,7 @@ object AdMobManager {
     }
 
     fun scheduleInterstitial(activity: Activity) {
-        if (schedulePosted || PrefsManager.isPremium(activity)) return
+        if (schedulePosted || PremiumManager.isPremium(activity)) return
         schedulePosted = true
         mainHandler.postDelayed({
             maybeShowInterstitial(activity)
@@ -45,7 +50,7 @@ object AdMobManager {
     }
 
     fun preloadInterstitial(context: Context) {
-        if (PrefsManager.isPremium(context) || interstitialAd != null) return
+        if (PremiumManager.isPremium(context) || interstitialAd != null) return
         InterstitialAd.load(
             context,
             INTERSTITIAL_AD_UNIT_ID,
@@ -63,7 +68,7 @@ object AdMobManager {
     }
 
     fun maybeShowInterstitial(activity: Activity) {
-        if (PrefsManager.isPremium(activity)) return
+        if (PremiumManager.isPremium(activity)) return
         val now = SystemClock.elapsedRealtime()
         if (now - lastShownInterstitialAt < MIN_INTERSTITIAL_DELAY_MS) return
         val ad = interstitialAd ?: run {
@@ -79,13 +84,47 @@ object AdMobManager {
     @Composable
     fun BannerAd() {
         val context = LocalContext.current
-        if (PrefsManager.isPremium(context)) return
+        if (PremiumManager.isPremium(context)) return
+
+        var isLoaded by remember { mutableStateOf(false) }
+
+        if (!isLoaded) {
+            AndroidView(
+                factory = { ctx ->
+                    AdView(ctx).apply {
+                        setAdSize(AdSize.BANNER)
+                        adUnitId = BANNER_AD_UNIT_ID
+                        adListener = object : AdListener() {
+                            override fun onAdLoaded() {
+                                isLoaded = true
+                            }
+
+                            override fun onAdFailedToLoad(error: LoadAdError) {
+                                isLoaded = false
+                            }
+                        }
+                        loadAd(AdRequest.Builder().build())
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            return
+        }
 
         AndroidView(
             factory = { ctx ->
                 AdView(ctx).apply {
                     setAdSize(AdSize.BANNER)
                     adUnitId = BANNER_AD_UNIT_ID
+                    adListener = object : AdListener() {
+                        override fun onAdLoaded() {
+                            isLoaded = true
+                        }
+
+                        override fun onAdFailedToLoad(error: LoadAdError) {
+                            isLoaded = false
+                        }
+                    }
                     loadAd(AdRequest.Builder().build())
                 }
             },
