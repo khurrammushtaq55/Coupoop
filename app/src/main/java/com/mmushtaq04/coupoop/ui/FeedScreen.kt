@@ -231,6 +231,24 @@ fun FeedScreen(
             )
         }
     ) { padding ->
+        val facts = remember {
+            listOf(
+                R.string.fact_1,
+                R.string.fact_2,
+                R.string.fact_3,
+                R.string.fact_4,
+                R.string.fact_5,
+                R.string.fact_6,
+                R.string.fact_7,
+                R.string.fact_8,
+                R.string.fact_9,
+                R.string.fact_10,
+                R.string.fact_11,
+                R.string.fact_12
+            )
+        }
+        val randomFactRes = remember { facts.random() }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -245,6 +263,11 @@ fun FeedScreen(
                 )
                 
                 CelebrationBanner(visible = celebration.value)
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                PoopFactCard(factText = stringResource(id = randomFactRes))
+
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
@@ -726,6 +749,32 @@ fun LogCard(log: Map<String, Any>, currentUserId: String?, pairingId: String?) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun PoopFactCard(factText: String) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.fact_title),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = factText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         }
     }
 }

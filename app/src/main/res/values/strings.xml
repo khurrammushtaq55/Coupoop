@@ -102,4 +102,19 @@
     <string name="widget_description">One-tap poop log shortcut for your home screen</string>
     <string name="tap_to_log">Tap to log</string>
     <string name="widget_log_note">Widget quick-log</string>
+
+    <!-- Fun Facts & Prompts -->
+    <string name="fact_title">💡 Poop Fact of the Day</string>
+    <string name="fact_1">The average person produces about 1 ounce of poop for every 12 pounds of their body weight each day! ⚖️</string>
+    <string name="fact_2">Wombat poop is famously cube-shaped! This prevents it from rolling away, so they can mark their territory. 🧱</string>
+    <string name="fact_3">Healthy poop should sink slowly. If it floats consistently, it might mean you have too much gas or fiber, or excess fat. 🪵</string>
+    <string name="fact_4">About 75% of your poop is actually just water! The rest is a mix of fiber, dead and live bacteria, and other cells. 💧</string>
+    <string name="fact_5">The brown color comes from stercobilin, a byproduct of hemoglobin breakdown in your liver and bile. 🧪</string>
+    <string name="fact_6">The world\'s oldest fossilized human poop, the Lloyds Bank coprolite, is 7 inches long and was left by a Viking! 🛡️</string>
+    <string name="fact_7">Most people poop at the same time every day, often within two hours of waking up! ⏰</string>
+    <string name="fact_8">Blue whales produce the largest poop on Earth—it can be bright orange and smell like rotting fish! 🐳</string>
+    <string name="fact_9">Sloths only poop once a week, and they lose up to one-third of their body weight in a single sitting! 🦥</string>
+    <string name="fact_10">The word "poop" comes from the Middle English word "poupen," which meant to make a piping sound! 🎺</string>
+    <string name="fact_11">Hippos use their tails like windshield wipers to spray their poop and mark their territory! 🦛</string>
+    <string name="fact_12">Your gut contains about 100 trillion bacteria, which is more than the number of stars in the Milky Way! 🌌</string>
 </resources>
