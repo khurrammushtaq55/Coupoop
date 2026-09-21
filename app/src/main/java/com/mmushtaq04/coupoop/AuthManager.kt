@@ -56,6 +56,39 @@ object AuthManager {
         auth.signOut()
     }
 
+    /**
+     * Lets the user set their own display name regardless of sign-in method —
+     * anonymous auth has no name at all, and even a Google-provided name isn't
+     * necessarily what someone wants their partner to see in a playful app
+     * like this. Updates both the FirebaseAuth profile (so currentUser()
+     * .displayName reflects it immediately) and users/{uid} in Firestore, and
+     * marks usernameSet so this is only ever asked once per account.
+     */
+    fun updateDisplayName(name: String, onResult: (success: Boolean, message: String?) -> Unit) {
+        val user = auth.currentUser
+        if (user == null) {
+            onResult(false, "Not signed in")
+            return
+        }
+        val update = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+            .setDisplayName(name)
+            .build()
+        user.updateProfile(update).addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                onResult(false, task.exception?.localizedMessage)
+                return@addOnCompleteListener
+            }
+            com.google.firebase.firestore.FirebaseFirestore.getInstance("coupoop")
+                .collection("users").document(user.uid)
+                .set(
+                    mapOf("displayName" to name, "usernameSet" to true),
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+                .addOnSuccessListener { onResult(true, null) }
+                .addOnFailureListener { e -> onResult(false, e.localizedMessage) }
+        }
+    }
+
     // Lets UI observe sign-in/sign-out reactively instead of reading
     // currentUser() once at composition time.
     fun addAuthStateListener(listener: FirebaseAuth.AuthStateListener) {
